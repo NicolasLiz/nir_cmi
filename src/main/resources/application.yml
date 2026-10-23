@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:3012}
+
+spring:
+  application:
+    name: nir-cmi-java
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+nircmi:
+  refresh-minutes: ${REFRESH_MINUTES:1}
+  datasource:
+    connect-string: ${DB_CONNECT_STRING:nir_cmi.db}
+    pool-max: ${DB_POOL_MAX:1}
+
+springdoc:
+  swagger-ui:
+    path: /docs
