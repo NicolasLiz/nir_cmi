@@ -1,7 +1,7 @@
 package br.com.nircmi.dto;
 
 /**
- * corpo de pedidos que envolvem dados do usuarion do sistema
+ * corpo de pedidos que envolvem dados do usuario do sistema(pode conter campos vazios)
  */
 public class UserRequest {
     public String userName;

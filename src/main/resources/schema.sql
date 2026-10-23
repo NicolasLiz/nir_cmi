@@ -9,3 +9,11 @@ CREATE TABLE IF NOT EXISTS internacoes (
     dias_internado INTEGER,
     alerta_dias TEXT
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    userID TEXT PRIMARY KEY,
+    userName TEXT NOT NULL,
+    userEmail TEXT UNIQUE NOT NULL,
+    userPassword TEXT NOT NULL,
+    userPermissions INTEGER NOT NULL
+);

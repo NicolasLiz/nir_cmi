@@ -3,8 +3,10 @@ package br.com.nircmi.repository;
 import br.com.nircmi.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.List;
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 /**
@@ -28,11 +30,27 @@ public class UserRepository {
     """;
 
     private static final String CREATE_NEW_USER = """
-        INSERT INTO users (userID, userName, userEmail, userPassword, userPersmissions) VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (userID, userName, userEmail, userPassword, userPermissions) VALUES (?, ?, ?, ?, ?)
     """;
 
     private static final String FIND_USER_EMAIL = """
-        SELECT userID, userName, userEmail, userPassword, userPersmissions FROM users WHERE userEmail = ?
+        SELECT userID, userName, userEmail, userPassword, userPermissions FROM users WHERE userEmail = ?
+    """;
+
+    private static final String FIND_USER_NAME = """
+        SELECT userID, userName, userEmail, userPassword, userPermissions FROM users WHERE userName = ?
+    """;
+
+    private static final String FIND_USER_PERM = """
+        SELECT userID, userName, userEmail, userPassword, userPermissions FROM users WHERE (userPermissions & ?) = ?
+    """;
+
+    private static final String DELETE_USER_EMAIL = """
+        DELETE FROM users WHERE userEmail = ?
+    """;
+
+    private static final String DELETE_USER_NAME = """
+        DELETE FROM users WHERE userName = ?
     """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -44,24 +62,53 @@ public class UserRepository {
     // get
     public User getUserByEmail(String email) {
         try {
-            return jbdcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return jdbcTemplate.queryForObject(FIND_USER_EMAIL, (rs, rowNum) -> {
                 User user = new User();
-                user.userID = rs.getString("userID");
+                user.userID = UUID.fromString(rs.getString("userID"));
                 user.userName = rs.getString("userName");
                 user.userEmail = rs.getString("userEmail");
                 user.userPassword = rs.getString("userPassword");
-                user.userPermissions = rs.getString("userPermissions");
+                user.userPermissions = rs.getLong("userPermissions");
                 return user;
-            }, email)
+            }, email);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
 
+    public User getUserByName(String name) {
+        try {
+            return jdbcTemplate.queryForObject(FIND_USER_EMAIL, (rs, rowNum) -> {
+                User user = new User();
+                user.userID = UUID.fromString(rs.getString("userID"));
+                user.userName = rs.getString("userName");
+                user.userEmail = rs.getString("userEmail");
+                user.userPassword = rs.getString("userPassword");
+                user.userPermissions = rs.getLong("userPermissions");
+                return user;
+            }, name);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    public List<User> getUsersByPermission(long permissions) {
+        return jdbcTemplate.query(FIND_USER_PERM, (rs, rowNum) -> {
+            User user = new User();
+            user.userID = UUID.fromString(rs.getString("userID"));
+            user.userName = rs.getString("userName");
+            user.userEmail = rs.getString("userEmail");
+            user.userPassword = rs.getString("userPassword");
+            user.userPermissions = rs.getLong("userPermissions");
+            return user;
+        }, permissions, permissions);
+    }
+
     // create
     public boolean createUser(User user) {
-        if (getUserByEmail(user.userEmail) == null) {
-            jbdcTemplate.update(
+        // only create user if there is no duplicate name and email
+        if ((getUserByEmail(user.userEmail) == null) && (getUserByName(user.userName) == null)) {
+            jdbcTemplate.update(
                 CREATE_NEW_USER,
                 user.userID,
                 user.userName,
@@ -75,6 +122,26 @@ public class UserRepository {
             return false;
         }
     }
+
     // delete
+    // fill userName and/or userEmail. returns 0 if it didnt find the user
+    public int deleteUser(User user) {
+        if (getUserByEmail(user.userEmail) != null) {
+            return jdbcTemplate.update(
+                DELETE_USER_EMAIL,
+                user.userEmail
+            );
+        }
+
+        if (getUserByName(user.userName) != null) {
+            return jdbcTemplate.update(
+                DELETE_USER_NAME,
+                user.userName
+            );
+        }
+
+        return 0;
+    }
+   
     // update
 }

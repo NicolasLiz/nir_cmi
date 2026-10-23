@@ -2,7 +2,6 @@
 
 Painel interativo em tempo real de pacientes internados na unidade CMI.
 
-### ignorar por enquanto
 <!-- ## Configuracao (variaveis de ambiente) -->
 <!---->
 <!-- | Variavel | Descricao | Default | -->
