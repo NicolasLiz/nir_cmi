@@ -16,7 +16,7 @@ public class AdmissionRepository {
     private static final String FIND_ALL_ADMISSIONS = """
         SELECT
             admissionID,
-            admissionPatientId,
+            admissionPatientID,
             admissionInDate,
             admissionOutDate,
             admissionStatus,
@@ -36,7 +36,7 @@ public class AdmissionRepository {
         
         // Map columns to model properties
         i.admissionID = rs.getLong("admissionID");
-        i.admissionPatientId = rs.getLong("admissionPatientId");
+        i.admissionPatientID = rs.getLong("admissionPatientID");
 
         // Safe parsing for admissionInDate
         String inDateStr = rs.getString("admissionInDate");

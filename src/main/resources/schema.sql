@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS patients (
 
 CREATE TABLE IF NOT EXISTS admissions (
     admissionID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    admissionPatientId INTEGER NOT NULL,
+    admissionPatientID INTEGER NOT NULL,
     admissionInDate TEXT,
     admissionOutDate TEXT,
     admissionStatus INTEGER, --flags
@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS bedOcupations {
 CREATE TABLE IF NOT EXISTS transfers (
     transferID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     transferAdmissionID INTEGER,
-    transferFromBed INTEGER,
-    transferToBed INTEGER,
+    transferFromBedID INTEGER,
+    transferToBedID INTEGER,
     transferDate TEXT,
     transferReason TEXT,
     transferUserID TEXT, -- uuid
@@ -91,22 +91,22 @@ CREATE TABLE IF NOT EXISTS transfers (
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (transferFromBed) REFERENCES beds(bedID)
+    FOREIGN KEY (transferFromBedID) REFERENCES beds(bedID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (transferToBed) REFERENCES beds(bedID)
+    FOREIGN KEY (transferToBedID) REFERENCES beds(bedID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (transferUserId) REFERENCES users(userID)
+    FOREIGN KEY (transferUserID) REFERENCES users(userID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 );
 
 CREATE TABLE IF NOT EXITS bedBlocks (
     blockID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    blockBedId INTEGER,
+    blockBedID INTEGER,
     blockReason TEXT,
     blockStartDate TEXT,
     blockEndDate TEXT,

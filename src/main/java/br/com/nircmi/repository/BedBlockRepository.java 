@@ -1,0 +1,60 @@
+package br.com.nircmi.repository;
+
+import br.com.nircmi.model.BedBlock;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.util.List;
+import java.time.LocalDateTime;
+
+@Repository
+public class BedBlockRepository {
+    private static final String FIND_ALL_BLOCKS = """
+        SELECT
+            blockID,
+            blockBedID,
+            blockReason,
+            blockStartDate,
+            blockEndDate,
+            blockUserID
+        FROM bedBlocks
+        ORDER BY block;
+    """;
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public BedBLockRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    private final RowMapper<BedBlock> blockRowMapper = (rs, rowNum) -> {
+        BedBlock i = new BedBlock();
+        
+        i.blockID = rs.getLong("blockID");
+        i.blockBedID = rs.getLong("blockBedID");
+        i.blockReason = rs.getString("blockReason");
+
+        String sStr = rs.getString("blockStartDate");
+        if (sStr != null && !sStr.isEmpty()) {
+            i.blockStartDate = LocalDateTime.parse(sStr);
+        } else {
+            i.blockStartDate = null;
+        }
+
+        String eStr = rs.getString("blockEndDate");
+        if (eStr != null && !eStr.isEmpty()) {
+            i.blockEndDate = LocalDateTime.parse(eStr);
+        } else {
+            i.blockEndDate = null;
+        }
+
+        i.blockUserID = rs.getLong("blockUserID");
+
+        return i;
+    };
+
+    public List<Bed> findCmiBlocks() {
+        return jdbcTemplate.query(FIND_ALL_BLOCKS, blockRowMapper);
+    }
+}
