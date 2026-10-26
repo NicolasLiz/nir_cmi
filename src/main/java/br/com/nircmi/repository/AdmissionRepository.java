@@ -77,6 +77,6 @@ public class AdmissionRepository {
     }
 
     public Admission getAdmissionByID(Long id) {
-        return jdbcTemplate.query(FIND_ADMISSION_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_ADMISSION_BY_ID, admissionRowMapper, id);
     }
 }

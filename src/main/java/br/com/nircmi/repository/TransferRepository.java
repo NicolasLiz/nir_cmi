@@ -26,7 +26,7 @@ public class TransferRepository {
         ORDER BY transferID;
     """;
 
-    private static final String FIND_ALL_TRANSFERS = """
+    private static final String FIND_TRANSFER_BY_ID = """
         SELECT
             transferID;
             transferAdmissionID;
@@ -74,6 +74,6 @@ public class TransferRepository {
     }
 
     public Transfer getTransferByID(Long id) {
-        return jdbcTemplate.query(FIND_TRANSFER_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_TRANSFER_BY_ID, transferRowMapper, id);
     }
 }

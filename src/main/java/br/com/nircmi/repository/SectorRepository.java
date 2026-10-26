@@ -33,6 +33,11 @@ public class SectorRepository {
         WHERE sectorID = ?;
     """;
 
+    private static final String CREATE_NEW_SECTOR = """
+        INSERT INTO sectors (sectorName, sectorDescription, sectorActive) 
+        VALUES (?, ?, ?);
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public SectorRepository(JdbcTemplate jdbcTemplate) {
@@ -56,6 +61,16 @@ public class SectorRepository {
     }
 
     public Sector getSectorByID(Long id) {
-        return jdbcTemplate.query(FIND_SECTOR_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_SECTOR_BY_ID, sectorRowMapper, id);
+    }
+
+    public boolean createSector(Sector sector) {
+        int rowsAffected = jdbcTemplate.update(CREATE_NEW_SECTOR, 
+                sector.sectorName,
+                sector.sectorDescription,
+                sector.sectorActive
+        );
+
+        return rowsAffected > 0;
     }
 }

@@ -7,6 +7,6 @@ public class Patient {
     public String patientName;
     public LocalDateTime patientBirthDate;
     public String patientDocument;
-    public String patientChard;
+    public String patientChart;
     public LocalDateTime patientRegisterDate;
 };

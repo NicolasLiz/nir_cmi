@@ -25,7 +25,7 @@ public class BedRepository {
         ORDER BY bedID;
     """;
 
-    private static final String FIND_ALL_BEDS = """
+    private static final String FIND_BED_BY_ID = """
         SELECT
             bedID,
             bedRoomID,
@@ -60,7 +60,7 @@ public class BedRepository {
         return jdbcTemplate.query(FIND_ALL_BEDS, bedRowMapper);
     }
 
-    public Bed getBedById(Long id) {
-        return jdbcTemplate.query(FIND_BED_BY_ID id);
+    public Bed getBedByID(Long id) {
+        return jdbcTemplate.queryForObject(FIND_BED_BY_ID, bedRowMapper, id);
     }
 }

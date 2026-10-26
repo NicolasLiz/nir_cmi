@@ -102,7 +102,7 @@ public class UserRepository {
     }
 
     public User getUserByID(UUID id) {
-        return jdbcTemplate.query(FIND_USER_BY_ID, userRowMapper, id);
+        return jdbcTemplate.queryForObject(FIND_USER_BY_ID, userRowMapper, id);
     }
 
     // create

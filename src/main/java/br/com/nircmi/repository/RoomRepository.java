@@ -59,6 +59,6 @@ public class RoomRepository {
     }
 
     public Room getRoomByID(Long id) {
-        return jdbcTemplate.query(FIND_ROOM_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_ROOM_BY_ID, roomRowMapper, id);
     }
 }

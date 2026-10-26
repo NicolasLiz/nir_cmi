@@ -58,7 +58,7 @@ public class PatientRepository {
             i.patientBirthDate = null;
         }
 
-        i.patientDocument = rs.getInt("patientDocument");
+        i.patientDocument = rs.getString("patientDocument");
         i.patientChart = rs.getString("patientChart");
 
         // Safe parsing for patientInDate
@@ -77,6 +77,6 @@ public class PatientRepository {
     }
 
     public Patient getPatientByID(Long id) {
-        return jdbcTemplate.query(FIND_PATIENT_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_PATIENT_BY_ID, patientRowMapper, id);
     }
 }

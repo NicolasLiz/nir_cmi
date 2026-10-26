@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 20px;
+}
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.status-connected { background-color: #d4edda; color: #155724; }
+.status-disconnected { background-color: #f8d7da; color: #721c24; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+th {
+    background-color: #007bff;
+    color: white;
+}
+tr:hover { background-color: #f1f1f1; }
+.no-data {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}

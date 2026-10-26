@@ -75,7 +75,7 @@ public class AuditRepository {
         return jdbcTemplate.query(FIND_ALL_AUDITS, auditRowMapper);
     }
 
-    public Audit getAuditById(Long id) {
-        return jdbcTemplate.query(FIND_AUDIT_BY_ID, id);
+    public Audit getAuditByID(Long id) {
+        return jdbcTemplate.queryForObject(FIND_AUDIT_BY_ID, auditRowMapper, id);
     }
 }

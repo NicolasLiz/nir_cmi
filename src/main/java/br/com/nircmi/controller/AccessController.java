@@ -30,11 +30,9 @@ public class AccessController {
     private static final Logger log = LoggerFactory.getLogger(AccessController.class);
 
     private final UserRepository repository;
-    private final TokenStore tokenStore;
 
-    public AccessController(UserRepository repository, TokenStore tokenStore) {
+    public AccessController(UserRepository repository) {
         this.repository = repository;
-        this.tokenStore = tokenStore;
     }
 
     // registra dados de usuario

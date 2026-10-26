@@ -31,7 +31,7 @@ public class AdmissionPollingService {
     @Scheduled(fixedDelayString = "${nircmi.refresh-minutes:1}" , timeUnit = java.util.concurrent.TimeUnit.MINUTES)
     public void pollOnce() {
         try {
-            List<Admission> rows = repository.findCmiAdmissions();
+            List<Admission> rows = repository.getAllAdmissions();
             messagingTemplate.convertAndSend("/topic/cmi-admission", rows);
         } catch (Exception e) {
             log.error("Erro no polling de internacoes CMI", e);

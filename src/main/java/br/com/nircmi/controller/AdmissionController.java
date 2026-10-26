@@ -28,7 +28,7 @@ public class AdmissionController {
     @GetMapping("/api/cmi/admissions")
     public ResponseEntity<?> getAdmissions() {
         try {
-            List<Admission> rows = repository.findCmiAdmissions();
+            List<Admission> rows = repository.getAllAdmissions();
             return ResponseEntity.ok(Map.of("data", rows));
         } catch (Exception e) {
             log.error("Erro ao buscar internacoes CMI", e);

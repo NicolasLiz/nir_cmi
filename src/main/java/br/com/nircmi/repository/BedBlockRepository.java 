@@ -71,6 +71,6 @@ public class BedBlockRepository {
     }
 
     public BedBlock getBlockByID(Long id) {
-        return jdbcTemplate.query(FIND_BLOCK_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_BLOCK_BY_ID, blockRowMapper, id);
     }
 }

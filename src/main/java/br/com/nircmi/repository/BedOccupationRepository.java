@@ -25,7 +25,7 @@ public class BedOccupationRepository {
         ORDER BY occupationID;
     """;
 
-    private static final String FIND_ALL_OCCUPATIONS = """
+    private static final String FIND_OCCUPATION_BY_ID = """
         SELECT
             occupationID;
             occupationAdmissionID;
@@ -66,7 +66,7 @@ public class BedOccupationRepository {
             i.occupationOutDate = null;
         }
 
-        i.occupationActive = rs.getString("occupationActive");
+        i.occupationActive = rs.getInt("occupationActive");
 
         return i;
     };
@@ -76,6 +76,6 @@ public class BedOccupationRepository {
     }
 
     public BedOccupation getOccupationByID(Long id) {
-        return jdbcTemplate.query(FIND_OCCUPATION_BY_ID, id);
+        return jdbcTemplate.queryForObject(FIND_OCCUPATION_BY_ID, occupationRowMapper, id);
     }
 }
