@@ -26,6 +26,19 @@ public class TransferRepository {
         ORDER BY transferID;
     """;
 
+    private static final String FIND_ALL_TRANSFERS = """
+        SELECT
+            transferID;
+            transferAdmissionID;
+            transferFromBedID;
+            transferToBedID;
+            transferDate;
+            transferReason;
+            transferUserID;
+        FROM transfers
+        WHERE transferID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public TransferRepository(JdbcTemplate jdbcTemplate) {
@@ -56,7 +69,11 @@ public class TransferRepository {
         return i;
     };
 
-    public List<Transfer> findCmiTransfers() {
+    public List<Transfer> getAllTransfers() {
         return jdbcTemplate.query(FIND_ALL_TRANSFERS, transferRowMapper);
+    }
+
+    public Transfer getTransferByID(Long id) {
+        return jdbcTemplate.query(FIND_TRANSFER_BY_ID, id);
     }
 }

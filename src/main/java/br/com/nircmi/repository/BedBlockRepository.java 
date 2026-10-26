@@ -22,6 +22,18 @@ public class BedBlockRepository {
         ORDER BY block;
     """;
 
+    private static final String FIND_BLOCK_BY_ID = """
+        SELECT
+            blockID,
+            blockBedID,
+            blockReason,
+            blockStartDate,
+            blockEndDate,
+            blockUserID
+        FROM bedBlocks
+        WHERE blockID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public BedBLockRepository(JdbcTemplate jdbcTemplate) {
@@ -54,7 +66,11 @@ public class BedBlockRepository {
         return i;
     };
 
-    public List<Bed> findCmiBlocks() {
+    public List<BedBlock> getAllBlocks() {
         return jdbcTemplate.query(FIND_ALL_BLOCKS, blockRowMapper);
+    }
+
+    public BedBlock getBlockByID(Long id) {
+        return jdbcTemplate.query(FIND_BLOCK_BY_ID, id);
     }
 }

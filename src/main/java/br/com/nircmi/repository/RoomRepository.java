@@ -24,6 +24,17 @@ public class RoomRepository {
         ORDER BY roomID;
     """;
 
+    private static final String FIND_ROOM_BY_ID = """
+        SELECT
+            roomID,
+            roomSectorID,
+            roomIdentification,
+            roomType,
+            roomActive,
+        FROM rooms
+        WHERE roomID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public RoomRepository(JdbcTemplate jdbcTemplate) {
@@ -43,7 +54,11 @@ public class RoomRepository {
         return i;
     };
 
-    public List<Room> findCmiRooms() {
+    public List<Room> getAllRooms() {
         return jdbcTemplate.query(FIND_ALL_ROOMS, roomRowMapper);
+    }
+
+    public Room getRoomByID(Long id) {
+        return jdbcTemplate.query(FIND_ROOM_BY_ID, id);
     }
 }

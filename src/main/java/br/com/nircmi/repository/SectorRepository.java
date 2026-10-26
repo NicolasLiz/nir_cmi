@@ -22,6 +22,17 @@ public class SectorRepository {
         ORDER BY sectorID;
     """;
 
+
+    private static final String FIND_SECTOR_BY_ID = """
+        SELECT
+            sectorID,
+            sectorName,
+            sectorDescription,
+            sectorActive
+        FROM sectors
+        WHERE sectorID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public SectorRepository(JdbcTemplate jdbcTemplate) {
@@ -40,7 +51,11 @@ public class SectorRepository {
         return i;
     };
 
-    public List<Sector> findAllSectors() {
+    public List<Sector> getAllSectors() {
         return jdbcTemplate.query(FIND_ALL_SECTORS, sectorRowMapper);
+    }
+
+    public Sector getSectorByID(Long id) {
+        return jdbcTemplate.query(FIND_SECTOR_BY_ID, id);
     }
 }

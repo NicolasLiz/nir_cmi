@@ -25,6 +25,18 @@ public class BedRepository {
         ORDER BY bedID;
     """;
 
+    private static final String FIND_ALL_BEDS = """
+        SELECT
+            bedID,
+            bedRoomID,
+            bedInDate,
+            bedOutDate,
+            bedStatus,
+            bedObservation
+        FROM beds
+        WHERE bedID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public BedRepository(JdbcTemplate jdbcTemplate) {
@@ -44,7 +56,11 @@ public class BedRepository {
         return i;
     };
 
-    public List<Bed> findCmiBeds() {
+    public List<Bed> getAllBeds() {
         return jdbcTemplate.query(FIND_ALL_BEDS, bedRowMapper);
+    }
+
+    public Bed getBedById(Long id) {
+        return jdbcTemplate.query(FIND_BED_BY_ID id);
     }
 }

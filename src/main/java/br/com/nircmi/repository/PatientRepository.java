@@ -25,6 +25,18 @@ public class PatientRepository {
         ORDER BY patientID;
     """;
 
+    private static final String FIND_PATIENT_BY_ID = """
+        SELECT
+            patientID,
+            patientName,
+            PatientBirthDate,
+            patientDocument,
+            patientChart,
+            patientRegisterDate
+        FROM patients
+        WHERE patientID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public PatientRepository(JdbcTemplate jdbcTemplate) {
@@ -60,7 +72,11 @@ public class PatientRepository {
         return i;
     };
 
-    public List<Patient> findCmiPatients() {
+    public List<Patient> getAllPatients() {
         return jdbcTemplate.query(FIND_ALL_PATIENTS, patientRowMapper);
+    }
+
+    public Patient getPatientByID(Long id) {
+        return jdbcTemplate.query(FIND_PATIENT_BY_ID, id);
     }
 }

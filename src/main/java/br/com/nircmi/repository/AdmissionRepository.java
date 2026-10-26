@@ -25,6 +25,18 @@ public class AdmissionRepository {
         ORDER BY admissionID;
     """;
 
+    private static final String FIND_ADMISSION_BY_ID = """
+        SELECT
+            admissionID,
+            admissionPatientID,
+            admissionInDate,
+            admissionOutDate,
+            admissionStatus,
+            admissionObservation
+        FROM admissions
+        WHERE admissionID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public AdmissionRepository(JdbcTemplate jdbcTemplate) {
@@ -60,7 +72,11 @@ public class AdmissionRepository {
         return i;
     };
 
-    public List<Admission> findCmiAdmissions() {
+    public List<Admission> getAllAdmissions() {
         return jdbcTemplate.query(FIND_ALL_ADMISSIONS, admissionRowMapper);
+    }
+
+    public Admission getAdmissionByID(Long id) {
+        return jdbcTemplate.query(FIND_ADMISSION_BY_ID, id);
     }
 }

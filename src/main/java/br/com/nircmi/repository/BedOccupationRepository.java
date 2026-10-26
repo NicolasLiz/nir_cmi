@@ -25,6 +25,18 @@ public class BedOccupationRepository {
         ORDER BY occupationID;
     """;
 
+    private static final String FIND_ALL_OCCUPATIONS = """
+        SELECT
+            occupationID;
+            occupationAdmissionID;
+            occupationBedID;
+            occupationInDate;
+            occupationOutDate;
+            occupationActive;
+        FROM occupations
+        WEHRE occupationID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public BedOccupationRepository(JdbcTemplate jdbcTemplate) {
@@ -59,7 +71,11 @@ public class BedOccupationRepository {
         return i;
     };
 
-    public List<BedOccupation> findCmiOccupations() {
+    public List<BedOccupation> getAllOccupations() {
         return jdbcTemplate.query(FIND_ALL_OCCUPATIONS, occupationRowMapper);
+    }
+
+    public BedOccupation getOccupationByID(Long id) {
+        return jdbcTemplate.query(FIND_OCCUPATION_BY_ID, id);
     }
 }

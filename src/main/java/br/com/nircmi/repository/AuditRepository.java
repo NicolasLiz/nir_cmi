@@ -26,6 +26,20 @@ public class AuditRepository {
         FROM audits
         ORDER BY auditID;
     """;
+    
+    private static final String FIND_AUDIT_BY_ID = """
+        SELECT
+            auditID;
+            auditUserID;
+            auditDate;
+            auditAction;
+            auditTable;
+            auditRegister;
+            auditPreviousValue;
+            auditNewValue;
+        FROM audits
+        WHERE auditID = ?;
+    """;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -57,7 +71,11 @@ public class AuditRepository {
         return i;
     };
 
-    public List<Audit> findCmiAdmissions() {
+    public List<Audit> getAllAudits() {
         return jdbcTemplate.query(FIND_ALL_AUDITS, auditRowMapper);
+    }
+
+    public Audit getAuditById(Long id) {
+        return jdbcTemplate.query(FIND_AUDIT_BY_ID, id);
     }
 }

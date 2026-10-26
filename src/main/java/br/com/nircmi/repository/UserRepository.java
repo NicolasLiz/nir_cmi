@@ -35,6 +35,11 @@ public class UserRepository {
         FROM users WHERE (userPermissions & ?) = ?
     """;
 
+    private static final String FIND_USER_BY_ID = """
+        SELECT userID, userName, userEmail, userPassword, userPermissions, userActive, userRegisterDate 
+        FROM users WHERE userID = ?
+        """;
+
     private static final String UPDATE_USER = """
         UPDATE users 
         SET userName = ?, userEmail = ?, userPassword = ?, userPermissions = ?, userActive = ?
@@ -94,6 +99,10 @@ public class UserRepository {
 
     public List<User> getUsersByPermission(long permissions) {
         return jdbcTemplate.query(FIND_USERS_BY_PERM, userRowMapper, permissions, permissions);
+    }
+
+    public User getUserByID(UUID id) {
+        return jdbcTemplate.query(FIND_USER_BY_ID, userRowMapper, id);
     }
 
     // create
