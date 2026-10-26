@@ -72,6 +72,8 @@ public class User {
     public String userEmail;
     public String userPassword; //never stored or used raw, only hashed with sha-256
     public Long userPermissions; // use the flag constants to assign/mask/compare
+    public int userActive; // 0 false 1 true( >:( java)
+    public LocalDateTime userRegisterDate;
 }
 
 // Permissões:

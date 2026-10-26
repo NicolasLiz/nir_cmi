@@ -1,7 +1,7 @@
 package br.com.nircmi.controller;
 
-import br.com.nircmi.model.Internacao;
-import br.com.nircmi.repository.InternacaoRepository;
+import br.com.nircmi.model.Admission;
+import br.com.nircmi.repository.AdmissionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,19 +16,19 @@ import java.util.Map;
  * Equivalente ao endpoint GET /api/cmi/internacoes de server/index.js
  */
 @RestController
-public class InternacaoController {
-    private static final Logger log = LoggerFactory.getLogger(InternacaoController.class);
+public class AdmissionController {
+    private static final Logger log = LoggerFactory.getLogger(AdmissionController.class);
 
-    private final InternacaoRepository repository;
+    private final AdmissionRepository repository;
 
-    public InternacaoController(InternacaoRepository repository) {
+    public AdmissionController(AdmissionRepository repository) {
         this.repository = repository;
     }
 
-    @GetMapping("/api/cmi/internacoes")
-    public ResponseEntity<?> getInternacoes() {
+    @GetMapping("/api/cmi/admissions")
+    public ResponseEntity<?> getAdmissions() {
         try {
-            List<Internacao> rows = repository.findCmiInternacoes();
+            List<Admission> rows = repository.findCmiAdmissions();
             return ResponseEntity.ok(Map.of("data", rows));
         } catch (Exception e) {
             log.error("Erro ao buscar internacoes CMI", e);

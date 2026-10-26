@@ -4,7 +4,11 @@ import br.com.nircmi.model.Patient;
 import br.com.nircmi.model.Unit;
 
 public class Transfer {
-    public Patient patient;
-    public Bed from;
-    public Bed to;
+    public Long transferID;
+    public Long transferAdmissionID;
+    public Long transferFromBed;
+    public Long transferToBed;
+    public LocalDateTime transferDate;
+    public String transferReason;
+    public Long transferUserID;
 }

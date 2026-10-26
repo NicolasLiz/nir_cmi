@@ -1,7 +1,7 @@
 package br.com.nircmi.service;
 
-import br.com.nircmi.model.Internacao;
-import br.com.nircmi.repository.InternacaoRepository;
+import br.com.nircmi.model.Admission;
+import br.com.nircmi.repository.AdmissionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,14 +16,14 @@ import java.util.List;
  * (substitui o canal Socket.IO 'cmi_internacoes' do projeto Node original).
  */
 @Service
-public class InternacaoPollingService {
+public class AdmissionPollingService {
 
-    private static final Logger log = LoggerFactory.getLogger(InternacaoPollingService.class);
+    private static final Logger log = LoggerFactory.getLogger(AdmissionPollingService.class);
 
-    private final InternacaoRepository repository;
+    private final AdmissionRepository repository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public InternacaoPollingService(InternacaoRepository repository, SimpMessagingTemplate messagingTemplate) {
+    public AdmissionPollingService(AdmissionRepository repository, SimpMessagingTemplate messagingTemplate) {
         this.repository = repository;
         this.messagingTemplate = messagingTemplate;
     }
@@ -31,8 +31,8 @@ public class InternacaoPollingService {
     @Scheduled(fixedDelayString = "${nircmi.refresh-minutes:1}" , timeUnit = java.util.concurrent.TimeUnit.MINUTES)
     public void pollOnce() {
         try {
-            List<Internacao> rows = repository.findCmiInternacoes();
-            messagingTemplate.convertAndSend("/topic/cmi-internacoes", rows);
+            List<Admission> rows = repository.findCmiAdmissions();
+            messagingTemplate.convertAndSend("/topic/cmi-admission", rows);
         } catch (Exception e) {
             log.error("Erro no polling de internacoes CMI", e);
         }
