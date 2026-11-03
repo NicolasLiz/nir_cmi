@@ -17,13 +17,20 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         });
 
         if (response.ok) {
-            // Since the backend redirects or returns success, navigate to app.html
-            window.location.href = '/app/internacao.html';
+            window.location.href = response.url;
         } else {
-            const err = await response.json();
-            alert(err.error || 'Login failed');
+            // Handle error response sent via response.sendError()
+            let errorMessage = 'Login failed: Invalid email or password.';
+            try {
+                const text = await response.text();
+                if (text) errorMessage = text;
+            } catch (e) {
+                // Ignore parse errors if response body is empty
+            }
+            alert(errorMessage);
         }
     } catch (error) {
         console.error('Error during login:', error);
+        alert('Network or server connection error.');
     }
 });

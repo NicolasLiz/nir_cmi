@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS sectors (
     sectorID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, --sequential
-    sectorName TEXT, NOT NULL
+    sectorName TEXT NOT NULL,
     sectorDescription TEXT,
     sectorActive INTEGER NOT NULL 
 );

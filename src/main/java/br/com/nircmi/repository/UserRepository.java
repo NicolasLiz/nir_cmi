@@ -15,6 +15,10 @@ import java.time.LocalDateTime;
  */
 @Repository
 public class UserRepository {
+    private static final String FIND_ALL_USERS = """
+        SELECT userID, userName, userEmail, userPermissions, userActive, userRegisterDate From users;
+    """;
+
     private static final String CREATE_NEW_USER = """
         INSERT INTO users (userID, userName, userEmail, userPassword, userPermissions, userActive, userRegisterDate) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -80,6 +84,26 @@ public class UserRepository {
     };
 
     // get
+    public List<User> getAllUsers() {
+        return jdbcTemplate.query(FIND_ALL_USERS, (rs, rowNum) -> {
+            User user = new User();
+            user.userID = UUID.fromString(rs.getString("userID"));
+            user.userName = rs.getString("userName");
+            user.userEmail = rs.getString("userEmail");
+            user.userPermissions = rs.getLong("userPermissions");
+            user.userActive = rs.getInt("userActive");
+
+            String str = rs.getString("userRegisterDate");
+            if (str != null && !str.isEmpty()) {
+                user.userRegisterDate = LocalDateTime.parse(str);
+            } else {
+                user.userRegisterDate = null;
+            }
+
+            return user;
+        });
+    }
+
     public User getUserByEmail(String email) {
         try {
             return jdbcTemplate.queryForObject(FIND_USER_BY_EMAIL, userRowMapper, email);
@@ -165,4 +189,10 @@ public class UserRepository {
 
         return 0;
     }
+
+    // public int deactivateUser(User user) {
+    // }
+    //
+    // public int activateUser(User user) {
+    // }
 }

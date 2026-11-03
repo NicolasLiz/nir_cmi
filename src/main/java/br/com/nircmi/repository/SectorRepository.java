@@ -38,6 +38,12 @@ public class SectorRepository {
         VALUES (?, ?, ?);
     """;
 
+    private static final String UPDATE_SECTOR = """
+        UPDATE sectors
+        SET sectorName = ?, sectorDescription = ?, sectorActive = ?
+        where sectorID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public SectorRepository(JdbcTemplate jdbcTemplate) {
@@ -49,7 +55,7 @@ public class SectorRepository {
         
         // Map columns to model properties
         i.sectorID = rs.getLong("sectorID");
-        i.sectorName = rs.getString("sectoName");
+        i.sectorName = rs.getString("sectorName");
         i.sectorDescription = rs.getString("sectorDescription");
         i.sectorActive = rs.getInt("sectorActive");
 
@@ -69,6 +75,22 @@ public class SectorRepository {
                 sector.sectorName,
                 sector.sectorDescription,
                 sector.sectorActive
+        );
+
+        return rowsAffected > 0;
+    }
+
+    public boolean updateSector(Sector sector) {
+        if (sector.sectorID == null) {
+            return false;
+        }
+
+        int rowsAffected = jdbcTemplate.update(
+                UPDATE_SECTOR, 
+                sector.sectorName,
+                sector.sectorDescription,
+                sector.sectorActive,
+                sector.sectorID
         );
 
         return rowsAffected > 0;

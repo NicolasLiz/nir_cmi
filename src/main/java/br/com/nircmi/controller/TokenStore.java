@@ -21,4 +21,8 @@ public class TokenStore {
     public void removeToken(String token) {
         activeUserTokens.remove(token);
     }
+
+    public UUID getTokenValue(String token) {
+        return activeUserTokens.get(token);
+    }
 }
