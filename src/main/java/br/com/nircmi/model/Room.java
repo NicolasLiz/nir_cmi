@@ -7,7 +7,7 @@ public class Room {
     public Long roomID;
     public Long roomSectorID;
     public String roomIdentification;
-    public int roomType;
+    public String roomType;
     public int roomActive;
 
     public Sector roomSector;

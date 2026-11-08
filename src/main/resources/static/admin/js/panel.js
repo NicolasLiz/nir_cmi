@@ -53,17 +53,9 @@ function applyRolePreset(roleKey) {
 
 let db = {
     usuarios: [], // Populated dynamically from the backend API
-    setores: [],
-    quartos: [
-        { id: 1, numero: "Quarto 101", setor: "UTI Geral", tipo: "Isolamento" },
-        { id: 2, numero: "Quarto 102", setor: "UTI Geral", tipo: "UTI Padrão" },
-        { id: 3, numero: "Quarto 201", setor: "Enfermaria Norte", tipo: "Enfermaria Coletiva" }
-    ],
-    leitos: [
-        { id: 1, numero: "Leito 01", quarto: "Quarto 101", status: "Disponível" },
-        { id: 2, numero: "Leito 02", quarto: "Quarto 102", status: "Ocupado" },
-        { id: 3, numero: "Leito 03", quarto: "Quarto 201", status: "Manutenção" }
-    ]
+    setores: [],  // Populated dynamically from the backend API
+    quartos: [],
+    leitos: []
 };
 
 // Fetch actual users from the Spring Boot backend API
@@ -82,8 +74,61 @@ async function loadUsersFromApi() {
     }
 }
 
+// Fetch actual sectors from the Spring Boot backend API
+async function loadSectorsFromApi() {
+    try {
+        const response = await fetch('/api/admin/get_sectors');
+        if (response.ok) {
+            const sectors = await response.json();
+            db.setores = Array.isArray(sectors) ? sectors : [];
+            refreshUI();
+        } else {
+            console.error('Falha ao carregar setores do servidor.');
+        }
+    } catch (error) {
+        console.error('Erro de rede ao buscar setores:', error);
+    }
+}
+
+async function loadRoomsFromApi() {
+    try {
+        const response = await fetch('/api/admin/get_rooms');
+        if (response.ok) {
+            const rooms = await response.json();
+            db.quartos = Array.isArray(rooms) ? rooms : [];
+            refreshUI();
+        } else {
+            console.error('Falha ao carregar quartos do servidor.');
+        }
+    } catch (error) {
+        console.error('Erro de rede ao buscar quartos:', error);
+    }
+}
+
+async function loadBedsFromApi() {
+    try {
+        const response = await fetch('/api/admin/get_beds');
+        if (response.ok) {
+            const beds = await response.json();
+            db.leitos = Array.isArray(beds) ? beds : [];
+            refreshUI();
+        } else {
+            console.error('Falha ao carregar leitos do servidor.');
+        }
+    } catch (error) {
+        console.error('Erro de rede ao buscar leitos:', error);
+    }
+}
+
+window.onload = async function() {
+    await loadUsersFromApi();
+    await loadSectorsFromApi();
+    await loadRoomsFromApi();
+    await loadBedsFromApi(); // Added beds loader
+    switchTab('dashboard');
+};
+
 function saveDB() {
-    localStorage.setItem('cmi_admin_setores', JSON.stringify(db.setores));
     localStorage.setItem('cmi_admin_quartos', JSON.stringify(db.quartos));
     localStorage.setItem('cmi_admin_leitos', JSON.stringify(db.leitos));
     refreshUI();
@@ -91,6 +136,7 @@ function saveDB() {
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) return;
     toast.textContent = message;
     toast.className = type === 'success' ? 'toast-success' : 'toast-danger';
     toast.style.display = 'block';
@@ -102,62 +148,110 @@ function showToast(message, type = 'success') {
 let currentTab = 'dashboard';
 function switchTab(tabId) {
     currentTab = tabId;
-    const tabs = ['dashboard', 'usuarios', 'setores', 'quartos', 'leitos'];
+    // Abas atualizadas correspondentes ao HTML unificado
+    const tabs = ['dashboard', 'usuarios', 'hospital'];
     
     tabs.forEach(t => {
         const section = document.getElementById(`tab-${t}`);
         const navBtn = document.getElementById(`nav-${t}`);
-        if (t === tabId) {
-            section.classList.remove('hidden');
-            navBtn.classList.add('active-nav');
-        } else {
-            section.classList.add('hidden');
-            navBtn.classList.remove('active-nav');
+        
+        if (section) {
+            if (t === tabId) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+        
+        if (navBtn) {
+            if (t === tabId) {
+                navBtn.classList.add('active-nav');
+            } else {
+                navBtn.classList.remove('active-nav');
+            }
         }
     });
 
     const titles = {
         dashboard: 'Dashboard Geral',
         usuarios: 'Gerenciamento de Usuários',
-        setores: 'Gerenciamento de Setores',
-        quartos: 'Gerenciamento de Quartos',
-        leitos: 'Gerenciamento de Leitos'
+        hospital: 'Leitos'
     };
-    document.getElementById('page-title').textContent = titles[tabId];
+    
+    const pageTitleEl = document.getElementById('page-title');
+    if (pageTitleEl && titles[tabId]) {
+        pageTitleEl.textContent = titles[tabId];
+    }
+    
     refreshUI();
 }
 
 function refreshUI() {
-    document.getElementById('stat-usuarios').textContent = db.usuarios.length;
-    document.getElementById('stat-setores').textContent = db.setores.length;
-    document.getElementById('stat-quartos').textContent = db.quartos.length;
-    document.getElementById('stat-leitos').textContent = db.leitos.length;
+    const elStatUsuarios = document.getElementById('stat-usuarios');
+    const elStatSetores = document.getElementById('stat-setores');
+    const elStatQuartos = document.getElementById('stat-quartos');
+    const elStatLeitos = document.getElementById('stat-leitos');
+
+    if (elStatUsuarios) elStatUsuarios.textContent = db.usuarios.length;
+    if (elStatSetores) elStatSetores.textContent = db.setores.length;
+    if (elStatQuartos) elStatQuartos.textContent = db.quartos.length;
+    if (elStatLeitos) elStatLeitos.textContent = db.leitos.length;
 
     const dispCount = db.leitos.filter(l => l.status === 'Disponível').length;
     const ocupCount = db.leitos.filter(l => l.status === 'Ocupado').length;
     const manutCount = db.leitos.filter(l => l.status === 'Manutenção').length;
 
-    document.getElementById('stat-leitos-disp').textContent = dispCount;
-    document.getElementById('stat-leitos-ocup').textContent = ocupCount;
-    document.getElementById('stat-leitos-manut').textContent = manutCount;
+    const elDisp = document.getElementById('stat-leitos-disp');
+    const elOcup = document.getElementById('stat-leitos-ocup');
+    const elManut = document.getElementById('stat-leitos-manut');
+
+    if (elDisp) elDisp.textContent = dispCount;
+    if (elOcup) elOcup.textContent = ocupCount;
+    if (elManut) elManut.textContent = manutCount;
 
     renderUsuariosTable();
-    renderSetoresTable();
-    renderQuartosTable();
-    renderLeitosTable();
+    renderHospitalHierarchy();
 }
 
-// Global variable to hold search/filter state if desired, or read directly from DOM
+function refreshUI() {
+    const statUsuarios = document.getElementById('stat-usuarios');
+    const statSetores = document.getElementById('stat-setores');
+    const statQuartos = document.getElementById('stat-quartos');
+    const statLeitos = document.getElementById('stat-leitos');
+
+    if (statUsuarios) statUsuarios.textContent = db.usuarios.length;
+    if (statSetores) statSetores.textContent = db.setores.length;
+    if (statQuartos) statQuartos.textContent = db.quartos.length;
+    if (statLeitos) statLeitos.textContent = db.leitos.length;
+
+    const dispCount = db.leitos.filter(l => l.status === 'Disponível').length;
+    const ocupCount = db.leitos.filter(l => l.status === 'Ocupado').length;
+    const manutCount = db.leitos.filter(l => l.status === 'Manutenção').length;
+
+    const statDisp = document.getElementById('stat-leitos-disp');
+    const statOcup = document.getElementById('stat-leitos-ocup');
+    const statManut = document.getElementById('stat-leitos-manut');
+
+    if (statDisp) statDisp.textContent = dispCount;
+    if (statOcup) statOcup.textContent = ocupCount;
+    if (statManut) statManut.textContent = manutCount;
+
+    renderUsuariosTable();
+    renderHospitalHierarchy();
+}
+
+// Global filter wrapper for users table
 function filterUsersTable() {
     renderUsuariosTable();
 }
 
 function renderUsuariosTable() {
     const tbody = document.getElementById('table-usuarios-body');
+    if (!tbody) return;
+
     const searchVal = document.getElementById('user-search-input')?.value.toLowerCase() || '';
     const statusVal = document.getElementById('user-filter-status')?.value || '';
 
-    // Filter from the already loaded db.usuarios array without making network calls
     const filteredUsers = db.usuarios.filter(u => {
         const name = (u.userName || '').toLowerCase();
         const email = (u.userEmail || '').toLowerCase();
@@ -201,87 +295,149 @@ function renderUsuariosTable() {
     }).join('') || `<tr><td colspan="5" style="padding: 1.5rem; text-align: center; color: #666666;">Nenhum usuário encontrado.</td></tr>`;
 }
 
-function renderSetoresTable() {
-    const tbody = document.getElementById('table-setores-body');
-    if (!tbody) return;
+function renderHospitalHierarchy() {
+    const container = document.getElementById('hospital-hierarchy-container');
+    if (!container) return;
 
-    tbody.innerHTML = db.setores.map(s => {
-        const name = s.sectorName || s.nome || 'Setor Sem Nome';
-        const desc = s.sectorDescription || s.descricao || '';
+    if (!db.setores || db.setores.length === 0) {
+        container.innerHTML = `<div style="padding: 2rem; text-align: center; color: #666; background: #fff; border-radius: 0.5rem; border: 1px solid #e5e7eb;">Nenhum setor cadastrado.</div>`;
+        return;
+    }
+
+    container.innerHTML = db.setores.map(s => {
+        const sectorName = s.sectorName || s.nome || 'Setor Sem Nome';
+        const sectorDesc = s.sectorDescription || s.descricao || '';
         const sectorId = s.sectorID || s.id || '';
+        const isSectorActive = s.sectorActive === true || s.sectorActive === 1 || s.sectorActive === undefined;
+        const sectorBadge = isSectorActive ? '<span class="badge-green">Ativo</span>' : '<span class="badge-red">Inativo</span>';
+
+        const sectorQuartos = db.quartos.filter(q => String(q.roomSectorID) === String(sectorId) || q.setor === sectorName);
 
         return `
-            <tr>
-                <td class="td-primary">${name}</td>
-                <td class="td-muted">${desc}</td>
-                <td class="td-actions">
-                    <button onclick="openModal('setores', '${sectorId}')" class="action-btn-edit" title="Editar">Editar <i class="fa-solid fa-pen-to-square"></i></button>
-                </td>
-            </tr>
+            <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <!-- Sector Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="badge-blue" style="font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.05em;">SETOR</span>
+                            <h4 style="margin: 0; font-size: 1.1rem; color: #1f2937;">${sectorName}</h4>
+                            ${sectorBadge}
+                        </div>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #6b7280;">${sectorDesc}</p>
+                    </div>
+                    <div style="display: flex; gap: 0.35rem; align-items: center;">
+                        <button onclick="openModal('quartos', null, '${sectorId}')" class="btn-primary-custom" style="background: #d97706; padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Adicionar Quarto a este Setor">
+                            <i class="fa-solid fa-plus"></i> Quarto
+                        </button>
+                        <button onclick="openModal('setores', '${sectorId}')" class="action-btn-edit" title="Editar Setor" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Editar</button>
+                    </div>
+                </div>
+
+                <!-- Rooms (Quartos) Container -->
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-left: 1rem;">
+                    ${sectorQuartos.length > 0 ? sectorQuartos.map(q => {
+                        const roomNum = q.roomIdentification || q.numero || '';
+                        const roomType = q.roomType || q.tipo || '';
+                        const roomId = q.roomID || q.id || '';
+                        
+                        const roomLeitos = db.leitos.filter(l => String(l.bedRoomID) === String(roomId) || l.quarto === roomNum);
+
+                        return `
+                            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.875rem;">
+                                <!-- Room Header -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="badge-gray" style="font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.05em;">QUARTO</span>
+                                        <span style="font-weight: 600; font-size: 0.95rem; color: #374151;">
+                                            ${roomNum} <span style="font-weight: normal; color: #6b7280; font-size: 0.85rem;">(${roomType})</span>
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                        <button onclick="openModal('leitos', null, '${roomId}')" class="btn-primary-custom" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;" title="Adicionar Leito a este Quarto">
+                                            <i class="fa-solid fa-plus"></i> Leito
+                                        </button>
+                                        <button onclick="openModal('quartos', '${roomId}')" class="action-btn-edit" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Editar</button>
+                                    </div>
+                                </div>
+
+                                <!-- Beds (Leitos) Badges Grid -->
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #e5e7eb;">
+                                        ${roomLeitos.length > 0 ? roomLeitos.map(l => {
+                                        const bedId = l.bedID || l.id || '';
+                                        const bedNum = l.bedNumber || l.numero || '';
+                                        const rawStatus = l.bedStatus !== undefined ? Number(l.bedStatus) : (l.status !== undefined ? Number(l.status) : 1);
+
+                                        let bedStatusText = 'Disponível';
+                                        let badgeStyle = 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;';
+
+                                        if ((rawStatus & 2) !== 0) { // bStatBusy
+                                            bedStatusText = 'Ocupado';
+                                            badgeStyle = 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;';
+                                        } else if ((rawStatus & 4) !== 0) { // bStatReserved
+                                            bedStatusText = 'Reservado';
+                                            badgeStyle = 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;';
+                                        } else if ((rawStatus & 8) !== 0) { // bStatHigienization
+                                            bedStatusText = 'Higienização';
+                                            badgeStyle = 'background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff;';
+                                        } else if ((rawStatus & 16) !== 0) { // bStatMaintenance
+                                            bedStatusText = 'Manutenção';
+                                            badgeStyle = 'background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;';
+                                        } else if ((rawStatus & 32) !== 0) { // bStatBlocked
+                                            bedStatusText = 'Bloqueado';
+                                            badgeStyle = 'background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;';
+                                        }
+
+                                        return `
+                                            <div style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; ${badgeStyle}">
+                                                <span style="font-size: 0.6rem; font-weight: 700; background: rgba(0,0,0,0.08); padding: 0.1rem 0.3rem; border-radius: 0.2rem;">LEITO</span>
+                                                <span>${bedNum} (${bedStatusText})</span>
+                                                <button onclick="openModal('leitos', '${bedId}')" title="Editar Leito" style="background: none; border: none; cursor: pointer; color: inherit; padding: 0; margin-left: 0.25rem;"><i class="fa-solid fa-pen" style="font-size: 0.65rem;"></i></button>
+                                                <button onclick="deleteRecord('leitos', '${bedId}')" title="Excluir Leito" style="background: none; border: none; cursor: pointer; color: inherit; padding: 0;"><i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i></button>
+                                            </div>
+                                        `;
+                                    }).join('') : '<span style="font-size: 0.8rem; color: #9ca3af; font-style: italic;">Nenhum leito cadastrado neste quarto.</span>'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('') : '<p style="font-size: 0.85rem; color: #9ca3af; font-style: italic; margin: 0; padding-left: 0.5rem;">Nenhum quarto cadastrado neste setor.</p>'}
+                </div>
+            </div>
         `;
-    }).join('') || `<tr><td colspan="3" style="padding: 1.5rem; text-align: center; color: #666666;">Nenhum setor cadastrado.</td></tr>`;
+    }).join('');
 }
 
-function renderQuartosTable() {
-    const tbody = document.getElementById('table-quartos-body');
-    tbody.innerHTML = db.quartos.map(q => `
-        <tr>
-            <td class="td-primary">${q.numero}</td>
-            <td><span class="badge-gray">${q.setor}</span></td>
-            <td class="td-primary">${q.tipo}</td>
-            <td class="td-actions">
-                <button onclick="openModal('quartos', ${q.id})" class="action-btn-edit" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                <button onclick="deleteRecord('quartos', ${q.id})" class="action-btn-delete" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('') || `<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: #666666;">Nenhum quarto cadastrado.</td></tr>`;
-}
-
-function renderLeitosTable() {
-    const tbody = document.getElementById('table-leitos-body');
-    tbody.innerHTML = db.leitos.map(l => {
-        let badgeClass = 'badge-green';
-        if (l.status === 'Ocupado') badgeClass = 'badge-red';
-        if (l.status === 'Manutenção') badgeClass = 'badge-yellow';
-
-        return `
-            <tr>
-                <td class="td-primary">${l.numero}</td>
-                <td class="td-muted">${l.quarto}</td>
-                <td><span class="${badgeClass}">${l.status}</span></td>
-                <td class="td-actions">
-                    <button onclick="openModal('leitos', ${l.id})" class="action-btn-edit" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button onclick="deleteRecord('leitos', ${l.id})" class="action-btn-delete" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
-    }).join('') || `<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: #666666;">Nenhum leito cadastrado.</td></tr>`;
-}
-
-function openModal(entity, id = null) {
+function openModal(entity, id = null, parentContext = null) {
     const container = document.getElementById('modal-container');
     const titleEl = document.getElementById('modal-title');
     const entityInput = document.getElementById('form-entity');
     const idInput = document.getElementById('form-id');
     const fieldsContainer = document.getElementById('form-fields-container');
 
+    if (!container || !entityInput || !idInput || !fieldsContainer) return;
+
     entityInput.value = entity;
-    idInput.value = id !== null ? id : '';
+    
+    const cleanId = (id !== null && id !== undefined && id !== 'null' && id !== '') ? id : '';
+    idInput.value = cleanId;
 
     let item = null;
-    if (id !== null) {
-        item = db[entity].find(i => (i.userID || i.id) == id);
-        titleEl.textContent = `Editar ${entity.slice(0, -1)}`;
+    if (cleanId !== '') {
+        // Added bedID to the lookup chain
+        item = db[entity].find(i => String(i.bedID || i.roomID || i.sectorID || i.userID || i.id) === String(cleanId));
+        if (titleEl) {
+            titleEl.textContent = `Editar ${entity === 'usuarios' ? 'Usuário' : entity === 'setores' ? 'Setor' : entity === 'quartos' ? 'Quarto' : 'Leito'}`;
+        }
     } else {
-        titleEl.textContent = `Adicionar ${entity.slice(0, -1)}`;
+        if (titleEl) {
+            titleEl.textContent = `Adicionar ${entity === 'usuarios' ? 'Usuário' : entity === 'setores' ? 'Setor' : entity === 'quartos' ? 'Quarto' : 'Leito'}`;
+        }
     }
 
     let html = '';
     if (entity === 'usuarios') {
         const userPerms = item && item.userPermissions !== undefined ? BigInt(item.userPermissions) : 0n;
-        const isUserActive = item ? (item.userActive !== false) : true;
+        const isUserActive = item ? (item.userActive !== false && item.userActive !== 0) : true;
 
-        // Automatically detect which role preset matches the user's permissions bitmask
         let matchedRole = '';
         if (item && item.userPermissions !== undefined) {
             if (userPerms === -1n || userPerms === 4294967295n || (userPerms & PERMISSIONS.uPermSystemParameters) !== 0n && userPerms.toString(2).length > 20) {
@@ -345,16 +501,18 @@ function openModal(entity, id = null) {
             </div>
         `;
     } else if (entity === 'setores') {
-        const isSectorActive = item ? (item.sectorActive !== 0 && item.sectorActive !== false) : true;
+        const sectorName = item ? (item.sectorName || item.nome || '') : '';
+        const sectorDesc = item ? (item.sectorDescription || item.descricao || '') : '';
+        const isSectorActive = item ? (item.sectorActive === true || item.sectorActive === 1 || item.sectorActive === undefined) : true;
 
         html = `
             <div class="form-field">
                 <label>Nome do Setor</label>
-                <input type="text" id="field-nome" class="input-custom" value="${item ? (item.sectorName || item.nome || '') : ''}" required placeholder="Ex: UTI Pediátrica">
+                <input type="text" id="field-nome" class="input-custom" value="${sectorName}" required placeholder="Ex: UTI Pediátrica">
             </div>
             <div class="form-field">
                 <label>Descrição</label>
-                <input type="text" id="field-descricao" class="input-custom" value="${item ? (item.sectorDescription || item.descricao || '') : ''}" required placeholder="Breve descrição do setor">
+                <input type="text" id="field-descricao" class="input-custom" value="${sectorDesc}" required placeholder="Breve descrição do setor">
             </div>
             <div class="form-field">
                 <label>Status do Setor</label>
@@ -365,11 +523,22 @@ function openModal(entity, id = null) {
             </div>
         `;
     } else if (entity === 'quartos') {
-        const setoresOptions = db.setores.map(s => `<option value="${s.nome}" ${item && item.setor === s.nome ? 'selected' : ''}>${s.nome}</option>`).join('');
+        const roomNum = item ? (item.roomIdentification || item.numero || '') : '';
+        const roomType = item ? (item.roomType || item.tipo || '') : '';
+        const roomSectorID = item ? (item.roomSectorID || '') : (parentContext || '');
+        const isRoomActive = item ? (item.roomActive === true || item.roomActive === 1 || item.roomActive === undefined) : true;
+
+        const setoresOptions = db.setores.map(s => {
+            const sId = s.sectorID || s.id;
+            const sName = s.sectorName || s.nome;
+            const isSelected = String(roomSectorID) === String(sId) || String(roomSectorID) === String(sName);
+            return `<option value="${sId}" ${isSelected ? 'selected' : ''}>${sName}</option>`;
+        }).join('');
+
         html = `
             <div class="form-field">
-                <label>Número do Quarto</label>
-                <input type="text" id="field-numero" class="input-custom" value="${item ? item.numero : ''}" required placeholder="Ex: Quarto 302">
+                <label>Número / Identificação do Quarto</label>
+                <input type="text" id="field-numero" class="input-custom" value="${roomNum}" required placeholder="Ex: Quarto 302">
             </div>
             <div class="form-field">
                 <label>Setor</label>
@@ -380,15 +549,34 @@ function openModal(entity, id = null) {
             </div>
             <div class="form-field">
                 <label>Tipo</label>
-                <input type="text" id="field-tipo" class="input-custom" value="${item ? item.tipo : ''}" required placeholder="Ex: UTI Padrão, Isolamento">
+                <input type="text" id="field-tipo" class="input-custom" value="${roomType}" required placeholder="Ex: UTI Padrão, Isolamento">
+            </div>
+            <div class="form-field">
+                <label>Status do Quarto</label>
+                <select id="field-ativo" class="input-custom">
+                    <option value="true" ${isRoomActive ? 'selected' : ''}>Ativo</option>
+                    <option value="false" ${!isRoomActive ? 'selected' : ''}>Inativo</option>
+                </select>
             </div>
         `;
     } else if (entity === 'leitos') {
-        const quartosOptions = db.quartos.map(q => `<option value="${q.numero}" ${item && item.quarto === q.numero ? 'selected' : ''}>${q.numero} (${q.setor})</option>`).join('');
+        const bedNum = item ? (item.bedNumber || item.numero || '') : '';
+        const bedType = item && item.bedType !== undefined ? Number(item.bedType) : 1;
+        const bedStatus = item && item.bedStatus !== undefined ? item.bedStatus : (item && item.status !== undefined ? item.status : 0);
+        const bedObs = item ? (item.bedObservation || '') : '';
+        const bedRoomID = item ? (item.bedRoomID || '') : (parentContext || '');
+
+        const quartosOptions = db.quartos.map(q => {
+            const qId = q.roomID || q.id;
+            const qNum = q.roomIdentification || q.numero;
+            const isSelected = String(bedRoomID) === String(qId) || String(bedRoomID) === String(qNum);
+            return `<option value="${qId}" ${isSelected ? 'selected' : ''}>${qNum} (${q.setor || ''})</option>`;
+        }).join('');
+
         html = `
             <div class="form-field">
-                <label>Identificação do Leito</label>
-                <input type="text" id="field-numero" class="input-custom" value="${item ? item.numero : ''}" required placeholder="Ex: Leito 05">
+                <label>Número / Identificação do Leito</label>
+                <input type="text" id="field-numero" class="input-custom" value="${bedNum}" required placeholder="Ex: Leito 01">
             </div>
             <div class="form-field">
                 <label>Quarto Associado</label>
@@ -400,10 +588,17 @@ function openModal(entity, id = null) {
             <div class="form-field">
                 <label>Status Operacional</label>
                 <select id="field-status" class="input-custom">
-                    <option value="Disponível" ${item && item.status === 'Disponível' ? 'selected' : ''}>Disponível</option>
-                    <option value="Ocupado" ${item && item.status === 'Ocupado' ? 'selected' : ''}>Ocupado</option>
-                    <option value="Manutenção" ${item && item.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
+                    <option value="1" ${Number(bedStatus) === 1 || bedStatus === 1 ? 'selected' : ''}>Disponível</option>
+                    <option value="2" ${Number(bedStatus) === 2 ? 'selected' : ''}>Ocupado</option>
+                    <option value="4" ${Number(bedStatus) === 4 ? 'selected' : ''}>Reservado</option>
+                    <option value="8" ${Number(bedStatus) === 8 ? 'selected' : ''}>Higienização</option>
+                    <option value="16" ${Number(bedStatus) === 16 ? 'selected' : ''}>Manutenção</option>
+                    <option value="32" ${Number(bedStatus) === 32 ? 'selected' : ''}>Bloqueado</option>
                 </select>
+            </div>
+            <div class="form-field">
+                <label>Observações</label>
+                <input type="text" id="field-obs" class="input-custom" value="${bedObs}" placeholder="Observações opcionais">
             </div>
         `;
     }
@@ -413,8 +608,10 @@ function openModal(entity, id = null) {
 }
 
 function closeModal() {
-    document.getElementById('modal-container').classList.add('hidden');
-    document.getElementById('generic-form').reset();
+    const container = document.getElementById('modal-container');
+    const form = document.getElementById('generic-form');
+    if (container) container.classList.add('hidden');
+    if (form) form.reset();
 }
 
 async function handleFormSubmit(event) {
@@ -425,9 +622,18 @@ async function handleFormSubmit(event) {
         // Calculate the combined bitmask from all checked permission checkboxes
         let totalPermissions = 0n;
         const checkboxes = document.querySelectorAll('input[name="perm-checkbox"]:checked');
-        checkboxes.forEach(cb => {
-            totalPermissions |= BigInt(cb.value);
-        });
+        
+        // Check if all checkboxes are selected (Admin role)
+        const allCheckboxes = document.querySelectorAll('input[name="perm-checkbox"]');
+        const isAllChecked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+
+        if (isAllChecked) {
+            totalPermissions = -1n; // Keeps full admin permissions (-1)
+        } else {
+            checkboxes.forEach(cb => {
+                totalPermissions |= BigInt(cb.value);
+            });
+        }
 
         const userId = document.getElementById('form-id').value;
         const payload = {
@@ -435,8 +641,10 @@ async function handleFormSubmit(event) {
             userName: document.getElementById('field-nome').value,
             userEmail: document.getElementById('field-email').value,
             userPassword: document.getElementById('field-senha').value,
-            userPermissions: Number(totalPermissions),
-            userActive: document.getElementById('field-ativo').value === 'true' ? 1 : 0 // Added activation flag
+            // Send as string or number depending on your Spring Boot DTO. 
+            // Passing Number(-1) or keeping it as BigInt string conversion ensures precision if parsed as Long.
+            userPermissions: totalPermissions === -1n ? -1 : Number(totalPermissions),
+            userActive: document.getElementById('field-ativo').value === 'true' ? 1 : 0
         };
 
         const endpoint = userId !== '' ? '/api/admin/update_user' : '/api/admin/register_user';
@@ -464,19 +672,15 @@ async function handleFormSubmit(event) {
         return;
     }
 
-    // Local storage handling for other entities (setores, quartos, leitos)
-    const idVal = document.getElementById('form-id').value;
-    const id = idVal !== '' ? parseInt(idVal) : null;
-    let newData = {};
-
     if (entity === 'setores') {
         const sectorId = document.getElementById('form-id').value;
+        const activeSelect = document.getElementById('field-ativo');
         
         const payload = {
             sectorID: sectorId !== '' ? sectorId : null,
             sectorName: document.getElementById('field-nome').value,
             sectorDescription: document.getElementById('field-descricao').value,
-            sectorActive: document.getElementById('field-ativo').value === 'true' ? 1 : 0
+            sectorActive: activeSelect ? (activeSelect.value === 'true' ? 1 : 0) : 1
         };
 
         const endpoint = sectorId !== '' ? '/api/admin/update_sector' : '/api/admin/register_sector';
@@ -502,18 +706,85 @@ async function handleFormSubmit(event) {
             showToast('Erro de conexão com o servidor.', 'danger');
         }
         return;
-    } else if (entity === 'quartos') {
-        newData = {
-            numero: document.getElementById('field-numero').value,
-            setor: document.getElementById('field-setor').value,
-            tipo: document.getElementById('field-tipo').value
+    }
+
+    // Local storage handling for quartos and leitos
+    const idVal = document.getElementById('form-id').value;
+    const id = idVal !== '' ? parseInt(idVal) : null;
+    let newData = {};
+
+    if (entity === 'quartos') {
+        const roomId = document.getElementById('form-id').value;
+        const activeSelect = document.getElementById('field-ativo');
+
+        const payload = {
+            roomID: roomId !== '' ? parseInt(roomId) : null,
+            roomSectorID: parseInt(document.getElementById('field-setor').value),
+            roomIdentification: document.getElementById('field-numero').value,
+            roomType: document.getElementById('field-tipo').value,
+            roomActive: activeSelect ? (activeSelect.value === 'true' ? 1 : 0) : 1
         };
+
+        const endpoint = roomId !== '' ? '/api/admin/update_room' : '/api/admin/register_room';
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const resultText = await response.text();
+
+            if (response.ok) {
+                showToast(resultText || 'Quarto salvo com sucesso!');
+                await loadRoomsFromApi();
+                closeModal();
+            } else {
+                showToast(resultText || 'Erro ao salvar quarto.', 'danger');
+            }
+        } catch (error) {
+            console.error('Erro de rede:', error);
+            showToast('Erro de conexão com o servidor.', 'danger');
+        }
+        return;
     } else if (entity === 'leitos') {
-        newData = {
-            numero: document.getElementById('field-numero').value,
-            quarto: document.getElementById('field-quarto').value,
-            status: document.getElementById('field-status').value
+        const bedId = document.getElementById('form-id').value;
+        const existingBed = bedId !== '' ? db.leitos.find(l => String(l.bedID || l.id) === String(bedId)) : null;
+
+        const payload = {
+            bedID: bedId !== '' ? parseInt(bedId) : null,
+            bedRoomID: parseInt(document.getElementById('field-quarto').value),
+            bedNumber: document.getElementById('field-numero').value,
+            bedType: parseInt(document.getElementById('field-tipo').value), // Sent as integer
+            bedStatus: parseInt(document.getElementById('field-status').value), // Sent as integer
+            bedObservation: document.getElementById('field-obs').value,
+            bedRegisterDate: existingBed && existingBed.bedRegisterDate ? existingBed.bedRegisterDate : new Date().toISOString()
         };
+
+        const endpoint = bedId !== '' ? '/api/admin/update_bed' : '/api/admin/register_bed';
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const resultText = await response.text();
+
+            if (response.ok) {
+                showToast(resultText || 'Leito salvo com sucesso!');
+                await loadBedsFromApi();
+                closeModal();
+            } else {
+                showToast(resultText || 'Erro ao salvar leito.', 'danger');
+            }
+        } catch (error) {
+            console.error('Erro de rede:', error);
+            showToast('Erro de conexão com o servidor.', 'danger');
+        }
+        return;
     }
 
     if (id !== null) {
@@ -532,61 +803,27 @@ async function handleFormSubmit(event) {
     closeModal();
 }
 
-function deleteRecord(entity, id) {
-    if (entity === 'usuarios') {
-        alert('A exclusão de usuários via API pode ser acoplada aqui.');
-        return;
-    }
-    if (confirm('Tem certeza que deseja excluir este registro?')) {
-        db[entity] = db[entity].filter(i => i.id !== id);
-        saveDB();
-        showToast('Registro excluído com sucesso!', 'danger');
-    }
-}
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
 
-window.onload = async function() {
-    await loadUsersFromApi();
-    await loadSectorsFromApi();
-    switchTab('dashboard');
-};
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-document.getElementById('logout-btn').addEventListener('click', async function(e) {
-    e.preventDefault(); // Prevent default link behavior
-
-    try {
-        const response = await fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+            if (response.ok || response.redirected) {
+                window.location.href = response.url || '/index.html';
+            } else {
+                window.location.href = '/index.html';
             }
-        });
-
-        // Since the backend uses sendRedirect, fetch will follow it to /index.html
-        if (response.ok || response.redirected) {
-            window.location.href = response.url;
-        } else {
-            // Fallback redirect if something went wrong
-            window.location.href = '/login';
+        } catch (error) {
+            console.error('Erro ao realizar logout:', error);
+            window.location.href = '/index.html';
         }
-    } catch (error) {
-        console.error('Erro ao realizar logout:', error);
-        // Force redirect to login even if network fails
-        window.location.href = '/login';
-    }
-});
-
-// Fetch actual sectors from the Spring Boot backend API
-async function loadSectorsFromApi() {
-    try {
-        const response = await fetch('/api/admin/get_sectors');
-        if (response.ok) {
-            const sectors = await response.json();
-            db.setores = Array.isArray(sectors) ? sectors : [];
-            refreshUI();
-        } else {
-            console.error('Falha ao carregar setores do servidor.');
-        }
-    } catch (error) {
-        console.error('Erro de rede ao buscar setores:', error);
-    }
+    });
 }

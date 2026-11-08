@@ -6,13 +6,15 @@
     <title>CMI - Painel Administrativo</title>
     
     <link rel="stylesheet" href="css/panel.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    
+    <!-- Toast Notification Container -->
     <div id="toast"></div>
 
-    
+    <!-- Sidebar Navigation -->
     <aside>
         <div class="aside-header">
             <div class="aside-logo">
@@ -32,30 +34,23 @@
                 <i class="fa-solid fa-users"></i>
                 <span>Usuários</span>
             </button>
-            <button onclick="switchTab('setores')" id="nav-setores" class="nav-btn">
+            <button onclick="switchTab('hospital')" id="nav-hospital" class="nav-btn">
                 <i class="fa-solid fa-sitemap"></i>
-                <span>Setores</span>
-            </button>
-            <button onclick="switchTab('quartos')" id="nav-quartos" class="nav-btn">
-                <i class="fa-solid fa-door-open"></i>
-                <span>Quartos</span>
-            </button>
-            <button onclick="switchTab('leitos')" id="nav-leitos" class="nav-btn">
-                <i class="fa-solid fa-bed"></i>
                 <span>Leitos</span>
             </button>
         </nav>
         <div class="aside-footer">
-            <a id="logout-btn">
+            <a id="logout-btn" class="logout-btn" style="cursor: pointer;">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>Sair do Sistema</span>
             </a>
         </div>
     </aside>
 
-    
+    <!-- Main Content Area -->
     <main>
         
+        <!-- Header -->
         <header>
             <h2 id="page-title" class="page-title">Dashboard Geral</h2>
             <div class="header-user-info">
@@ -66,10 +61,10 @@
             </div>
         </header>
 
-        
+        <!-- Scrollable Content Container -->
         <div class="content-scrollable">
 
-            
+            <!-- 1. Dashboard Tab -->
             <section id="tab-dashboard" class="section-container">
                 <div class="stats-grid">
                     <div class="card-custom">
@@ -110,7 +105,6 @@
                     </div>
                 </div>
 
-                
                 <div class="card-block">
                     <h3>Status Atual dos Leitos</h3>
                     <div class="beds-status-grid">
@@ -139,7 +133,7 @@
                 </div>
             </section>
 
-            
+            <!-- 2. Users Management Tab -->
             <section id="tab-usuarios" class="section-container hidden">
                 <div class="section-header-row">
                     <div>
@@ -151,6 +145,18 @@
                         <span>Novo Usuário</span>
                     </button>
                 </div>
+
+                <!-- User Filter Toolbar -->
+                <div class="user-toolbar" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="user-search-input" class="input-custom" placeholder="Pesquisar por nome ou e-mail..." oninput="filterUsersTable()" style="flex: 1; min-width: 240px;">
+                    
+                    <select id="user-filter-status" class="input-custom" onchange="filterUsersTable()" style="width: 160px;">
+                        <option value="">Todos os Status</option>
+                        <option value="active">Ativos</option>
+                        <option value="inactive">Inativos</option>
+                    </select>
+                </div>
+
                 <div class="table-container">
                     <table class="custom-table">
                         <thead>
@@ -158,106 +164,41 @@
                                 <th>Nome</th>
                                 <th>E-mail</th>
                                 <th>Perfil / Função</th>
-                                <th style="text-align: right;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-usuarios-body">
-                            
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            
-            <section id="tab-setores" class="section-container hidden">
-                <div class="section-header-row">
-                    <div>
-                        <h3>Gerenciamento de Setores</h3>
-                        <p>Controle os departamentos e alas do hospital.</p>
-                    </div>
-                    <button onclick="openModal('setores')" class="btn-primary-custom">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Novo Setor</span>
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Nome do Setor</th>
-                                <th>Descrição</th>
-                                <th style="text-align: right;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-setores-body">
-                            
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            
-            <section id="tab-quartos" class="section-container hidden">
-                <div class="section-header-row">
-                    <div>
-                        <h3>Gerenciamento de Quartos</h3>
-                        <p>Associe quartos aos respectivos setores hospitalares.</p>
-                    </div>
-                    <button onclick="openModal('quartos')" class="btn-primary-custom">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Novo Quarto</span>
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Número do Quarto</th>
-                                <th>Setor</th>
-                                <th>Tipo</th>
-                                <th style="text-align: right;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-quartos-body">
-                            
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            
-            <section id="tab-leitos" class="section-container hidden">
-                <div class="section-header-row">
-                    <div>
-                        <h3>Gerenciamento de Leitos</h3>
-                        <p>Acompanhe leitos vinculados aos quartos e seus estados operacionais.</p>
-                    </div>
-                    <button onclick="openModal('leitos')" class="btn-primary-custom">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Novo Leito</span>
-                    </button>
-                </div>
-                <div class="table-container">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Identificação do Leito</th>
-                                <th>Quarto Associado</th>
                                 <th>Status</th>
                                 <th style="text-align: right;">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="table-leitos-body">
-                            
+                        <tbody id="table-usuarios-body">
+                            <!-- Populated dynamically -->
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- 3. Unified Hospital Architecture Tab (Setores -> Quartos -> Leitos) -->
+            <section id="tab-hospital" class="section-container hidden">
+                <div class="section-header-row">
+                    <div>
+                        <h3>Leitos</h3>
+                        <p>Gerencie a hierarquia completa de setores, quartos e leitos.</p>
+                    </div>
+                    <div>
+                        <button onclick="openModal('setores')" class="btn-primary-custom" style="background: #059669;">
+                            <i class="fa-solid fa-plus"></i> <span>Novo Setor</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hierarchical Tree Container -->
+                <div id="hospital-hierarchy-container" style="display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0.5rem;">
+                    <!-- Populated dynamically -->
                 </div>
             </section>
 
         </div>
     </main>
 
-    
+    <!-- Universal Modal Container -->
     <div id="modal-container" class="modal-overlay hidden">
         <div class="modal-box">
             <div class="modal-header">
@@ -270,7 +211,7 @@
                 <input type="hidden" id="form-entity">
                 <input type="hidden" id="form-id">
                 <div id="form-fields-container" class="form-fields-group">
-                    
+                    <!-- Dynamic form fields injected here -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal()" class="btn-secondary">Cancelar</button>
@@ -280,7 +221,7 @@
         </div>
     </div>
 
-   
+    <!-- Script Link -->
     <script src="js/panel.js"></script>
 </body>
 </html>

@@ -369,6 +369,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .section-header-row h3 {
@@ -442,11 +444,14 @@ header {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0.25rem;
-    transition: color 0.2s;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .action-btn-edit:hover {
+    background-color: #eff6ff;
     color: #0056b3;
 }
 
@@ -455,11 +460,14 @@ header {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0.25rem;
-    transition: color 0.2s;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .action-btn-delete:hover {
+    background-color: #fef2f2;
     color: #c82333;
 }
 

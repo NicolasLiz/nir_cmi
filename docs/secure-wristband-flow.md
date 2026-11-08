@@ -560,7 +560,6 @@ INTERNACAO
 
 OCUPACAO_LEITO
 
-* id_ocupacao
 * id_internacao
 * id_leito
 * data_entrada
@@ -710,6 +709,13 @@ Ao final do projeto, a maternidade deverá possuir uma ferramenta centralizada p
 Quantos leitos existem → Quantos estão ocupados → Quantos estão disponíveis → Onde estão as pacientes → Quais leitos estão bloqueados → Quais movimentações ocorreram.
 
 O sistema deverá proporcionar maior organização, rastreabilidade e agilidade na gestão dos leitos, servindo como ferramenta de apoio à tomada de decisão da equipe responsável pela gestão da maternidade.
+
+26. Stakeholders
+
+
+
+
+
 
 
 # Fluxo de pulseira segura (porte do original)

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     roomID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     roomSectorID INTEGER NOT NULL,
     roomIdentification TEXT, --???
-    roomType INTEGER, NOT NULL, --flags
+    roomType TEXT NOT NULL, --flags
     roomActive INTEGER NOT NULL,
 
     FOREIGN KEY (roomSectorID) REFERENCES sectors(sectorID)
@@ -27,12 +27,14 @@ CREATE TABLE IF NOT EXISTS rooms (
     ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS bed (
+CREATE TABLE IF NOT EXISTS beds (
     bedID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     bedRoomID INTEGER NOT NULL,
-    bedIdentification TEXT --???
+    bedNumber INTEGER NOT NULL,
     bedType INTEGER NOT NULL,
-    bedActive INTEGER NOT NULL,
+    bedStatus INTEGER NOT NULL,
+    bedObservation TEXT,
+    bedRegisterDate TEXT NOT NULL,
 
     FOREIGN KEY (bedRoomID) REFERENCES rooms(roomID)
         ON DELETE RESTRICT

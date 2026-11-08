@@ -19,7 +19,7 @@ public class RoomRepository {
             roomSectorID,
             roomIdentification,
             roomType,
-            roomActive,
+            roomActive
         FROM rooms
         ORDER BY roomID;
     """;
@@ -30,9 +30,20 @@ public class RoomRepository {
             roomSectorID,
             roomIdentification,
             roomType,
-            roomActive,
+            roomActive
         FROM rooms
         WHERE roomID = ?;
+    """;
+
+    private static final String CREATE_NEW_ROOM = """
+        INSERT INTO rooms (roomSectorID, roomIdentification, roomType, roomActive) 
+        VALUES (?, ?, ?, ?);
+    """;
+
+    private static final String UPDATE_ROOM = """
+        UPDATE rooms
+        SET roomSectorID = ?, roomIdentification = ?, roomType = ?, roomActive = ?
+        where roomSectorID = ?;
     """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -48,7 +59,7 @@ public class RoomRepository {
         i.roomID = rs.getLong("roomID");
         i.roomSectorID = rs.getLong("roomSectorID");
         i.roomIdentification = rs.getString("roomIdentification");
-        i.roomType = rs.getInt("roomType");
+        i.roomType = rs.getString("roomType");
         i.roomActive = rs.getInt("roomActive");
 
         return i;
@@ -60,5 +71,32 @@ public class RoomRepository {
 
     public Room getRoomByID(Long id) {
         return jdbcTemplate.queryForObject(FIND_ROOM_BY_ID, roomRowMapper, id);
+    }
+
+    public boolean createRoom(Room room) {
+        int rowsAffected = jdbcTemplate.update(CREATE_NEW_ROOM,
+            room.roomSectorID,
+            room.roomIdentification,
+            room.roomType,
+            room.roomActive
+        );
+
+        return rowsAffected > 0;
+    }
+
+    public boolean updateRoom(Room room) {
+        if (room.roomID == null) {
+            return false;
+        }
+
+        int rowsAffected = jdbcTemplate.update(UPDATE_ROOM, 
+            room.roomSectorID,
+            room.roomIdentification,
+            room.roomType,
+            room.roomActive,
+            room.roomID
+        );
+
+        return rowsAffected > 0;
     }
 }
