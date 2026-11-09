@@ -42,6 +42,18 @@ CREATE TABLE IF NOT EXISTS beds (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS bedStatusChanges (
+    statusChangeID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    statusChangeBedID INTEGER NOT NULL,
+    statusChangeOld INTEGER NOT NULL,
+    statusChangeNew INTEGER NOT NULL,
+    statusChangeDate TEXT,
+    
+    FOREIGN KEY (statusChangeBedID) REFERENCES beds(bedID)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS patients (
     patientID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     patientName TEXT NOT NULL,

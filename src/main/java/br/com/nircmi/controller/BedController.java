@@ -3,8 +3,10 @@ package br.com.nircmi.controller;
 import br.com.nircmi.model.User;
 
 import br.com.nircmi.model.Bed;
+import br.com.nircmi.model.BedStatusChange;
 
 import br.com.nircmi.repository.BedRepository;
+import br.com.nircmi.repository.BedStatusChangeRepository;
 
 import br.com.nircmi.util.Crypto;
 import br.com.nircmi.dto.UserRequest;
@@ -29,6 +31,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 /**
  * Endpoints para operações feitas pelo admin
@@ -38,9 +41,11 @@ public class BedController {
     private static final Logger log = LoggerFactory.getLogger(AccessController.class);
 
     private final BedRepository bedRepository;
+    private final BedStatusChangeRepository bedStatusChangeRepository;
 
-    public BedController(BedRepository bedRepository) {
+    public BedController(BedRepository bedRepository, BedStatusChangeRepository bedStatusChangeRepository) {
         this.bedRepository = bedRepository;
+        this.bedStatusChangeRepository = bedStatusChangeRepository;
     }
 
 
@@ -113,6 +118,18 @@ public class BedController {
             existingBed.bedRoomID = bedRequest.bedRoomID;
             existingBed.bedNumber = bedRequest.bedNumber;
             existingBed.bedType = bedRequest.bedType;
+            if (existingBed.bedStatus != bedRequest.bedStatus) {
+                BedStatusChange statusChange = new BedStatusChange();
+
+                statusChange.statusChangeBedID = existingBed.bedID;
+                statusChange.statusChangeOld = existingBed.bedStatus;
+                statusChange.statusChangeNew = bedRequest.bedStatus;
+                statusChange.statusChangeDate = LocalDateTime.now();
+
+                bedStatusChangeRepository.createBedStatusChange(statusChange);
+
+                log.info("Bed Status Changed: {}", existingBed.bedID);
+            }
             existingBed.bedStatus = bedRequest.bedStatus;
             existingBed.bedObservation = bedRequest.bedObservation;
             existingBed.bedRegisterDate = bedRequest.bedRegisterDate;

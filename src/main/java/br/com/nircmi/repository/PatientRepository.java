@@ -37,6 +37,11 @@ public class PatientRepository {
         WHERE patientID = ?;
     """;
 
+    private static final String CREATE_NEW_PATIENT = """
+        INSERT INTO patients (patientName, patientBirthDate, patientDocument, patientChart, patientRegisterDate)
+        VALUES (?, ?, ?, ?, ?);
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public PatientRepository(JdbcTemplate jdbcTemplate) {
