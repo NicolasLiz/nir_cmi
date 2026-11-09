@@ -408,6 +408,7 @@ public class AdminController {
             newBed.bedStatus = bedRequest.bedStatus;
             newBed.bedObservation = bedRequest.bedObservation;
             newBed.bedRegisterDate = bedRequest.bedRegisterDate;
+            newBed.bedActive = bedRequest.bedActive;
 
             // 2. Attempt to create the user in the repository
             boolean created = bedRepository.createBed(newBed);
@@ -476,6 +477,7 @@ public class AdminController {
             existingBed.bedStatus = bedRequest.bedStatus;
             existingBed.bedObservation = bedRequest.bedObservation;
             existingBed.bedRegisterDate = bedRequest.bedRegisterDate;
+            existingBed.bedActive = bedRequest.bedActive;
 
             // 4. Save updates in the repository
             boolean updated = bedRepository.updateBed(existingBed);

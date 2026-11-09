@@ -21,8 +21,10 @@ public class BedRepository {
             bedType, 
             bedStatus,
             bedObservation,
-            bedRegisterDate
+            bedRegisterDate,
+            bedActive
         FROM beds
+        WHERE bedActive = 1
         ORDER BY bedID;
     """;
 
@@ -34,20 +36,21 @@ public class BedRepository {
             bedType, 
             bedStatus,
             bedObservation,
-            bedRegisterDate
+            bedRegisterDate,
+            bedActive
         FROM beds
         WHERE bedID = ?;
     """;
 
     private static final String CREATE_NEW_BED = """
-        INSERT INTO beds (bedRoomID, bedNumber, bedType, bedStatus, bedObservation, bedRegisterDate) 
-        VALUES (?, ?, ?, ?, ?, ?);
+        INSERT INTO beds (bedRoomID, bedNumber, bedType, bedStatus, bedObservation, bedRegisterDate, bedActive) 
+        VALUES (?, ?, ?, ?, ?, ?, ?);
     """;
 
     private static final String UPDATE_BED = """
-        UPDATE rooms
-        SET bedRoomID = ?, bedNumber = ?, bedType = ?, bedStatus = ?, bedObservation = ?, bedRegisterDate = ?
-        where roomSectorID = ?;
+        UPDATE beds
+        SET bedRoomID = ?, bedNumber = ?, bedType = ?, bedStatus = ?, bedObservation = ?, bedRegisterDate = ?, bedActive = ?
+        where bedID = ?;
     """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -67,6 +70,7 @@ public class BedRepository {
         i.bedStatus = rs.getInt("bedStatus");
         i.bedObservation = rs.getString("bedObservation");
         i.bedRegisterDate = LocalDateTime.parse(rs.getString("bedRegisterDate"));
+        i.bedActive = rs.getInt("bedActive");
 
         return i;
     };
@@ -86,7 +90,8 @@ public class BedRepository {
             bed.bedType,
             bed.bedStatus,
             bed.bedObservation,
-            bed.bedRegisterDate
+            bed.bedRegisterDate,
+            bed.bedActive
         );
 
         return rowsAffected > 0;
@@ -104,6 +109,7 @@ public class BedRepository {
             bed.bedStatus,
             bed.bedObservation,
             bed.bedRegisterDate,
+            bed.bedActive,
             bed.bedID
         );
 

@@ -749,17 +749,25 @@ async function handleFormSubmit(event) {
         }
         return;
     } else if (entity === 'leitos') {
-        const bedId = document.getElementById('form-id').value;
+        const bedIdEl = document.getElementById('form-id');
+        const quartoEl = document.getElementById('field-quarto');
+        const numeroEl = document.getElementById('field-numero');
+        const tipoEl = document.getElementById('field-tipo');
+        const statusEl = document.getElementById('field-status');
+        const obsEl = document.getElementById('field-obs');
+
+        const bedId = bedIdEl ? bedIdEl.value : '';
         const existingBed = bedId !== '' ? db.leitos.find(l => String(l.bedID || l.id) === String(bedId)) : null;
 
         const payload = {
             bedID: bedId !== '' ? parseInt(bedId) : null,
-            bedRoomID: parseInt(document.getElementById('field-quarto').value),
-            bedNumber: document.getElementById('field-numero').value,
-            bedType: parseInt(document.getElementById('field-tipo').value), // Sent as integer
-            bedStatus: parseInt(document.getElementById('field-status').value), // Sent as integer
-            bedObservation: document.getElementById('field-obs').value,
-            bedRegisterDate: existingBed && existingBed.bedRegisterDate ? existingBed.bedRegisterDate : new Date().toISOString()
+            bedRoomID: quartoEl && quartoEl.value ? parseInt(quartoEl.value) : null,
+            bedNumber: numeroEl ? numeroEl.value : '',
+            bedType: tipoEl && tipoEl.value ? parseInt(tipoEl.value) : 1,
+            bedStatus: statusEl && statusEl.value ? parseInt(statusEl.value) : 1,
+            bedObservation: obsEl ? obsEl.value : '',
+            bedRegisterDate: existingBed && existingBed.bedRegisterDate ? existingBed.bedRegisterDate : new Date().toISOString(),
+            bedActive: 1
         };
 
         const endpoint = bedId !== '' ? '/api/admin/update_bed' : '/api/admin/register_bed';
@@ -826,4 +834,51 @@ if (logoutBtn) {
             window.location.href = '/index.html';
         }
     });
+}
+
+async function deleteRecord(entity, id) {
+    if (entity !== 'leitos') {
+        alert('Apenas leitos podem ser desativados.');
+        return;
+    }
+
+    if (!confirm('Tem certeza que deseja desativar este leito?')) return;
+
+    // Retrieve existing bed to preserve its full payload
+    const existingBed = db.leitos.find(l => String(l.bedID || l.id) === String(id));
+    if (!existingBed) {
+        showToast('Leito não encontrado.', 'danger');
+        return;
+    }
+
+    const payload = {
+        bedID: parseInt(existingBed.bedID || existingBed.id),
+        bedRoomID: parseInt(existingBed.bedRoomID),
+        bedNumber: existingBed.bedNumber || existingBed.numero,
+        bedType: parseInt(existingBed.bedType || 1),
+        bedStatus: parseInt(existingBed.bedStatus !== undefined ? existingBed.bedStatus : 1),
+        bedObservation: existingBed.bedObservation || '',
+        bedRegisterDate: existingBed.bedRegisterDate || new Date().toISOString(),
+        bedActive: 0 // Set inactive flag for soft delete
+    };
+
+    try {
+        const response = await fetch('/api/admin/update_bed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const resultText = await response.text();
+
+        if (response.ok) {
+            showToast(resultText || 'Leito desativado com sucesso!');
+            await loadBedsFromApi();
+        } else {
+            showToast(resultText || 'Erro ao desativar leito.', 'danger');
+        }
+    } catch (error) {
+        console.error('Erro de rede ao desativar leito:', error);
+        showToast('Erro de conexão com o servidor.', 'danger');
+    }
 }

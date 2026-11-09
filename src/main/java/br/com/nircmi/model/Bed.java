@@ -19,6 +19,7 @@ public class Bed {
     public int bedStatus;
     public String bedObservation;
     public LocalDateTime bedRegisterDate;
+    public int bedActive;
 
     public Room bedRoom;
 };

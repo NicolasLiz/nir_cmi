@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS beds (
     bedStatus INTEGER NOT NULL,
     bedObservation TEXT,
     bedRegisterDate TEXT NOT NULL,
+    bedActive INTEGET NOT NULL,
 
     FOREIGN KEY (bedRoomID) REFERENCES rooms(roomID)
         ON DELETE RESTRICT
