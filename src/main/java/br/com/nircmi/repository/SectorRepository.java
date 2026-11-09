@@ -19,7 +19,9 @@ public class SectorRepository {
             sectorDescription,
             sectorActive
         FROM sectors
+        WHERE sectorActive = 1
         ORDER BY sectorID;
+
     """;
 
 

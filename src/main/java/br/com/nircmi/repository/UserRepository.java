@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Repository
 public class UserRepository {
     private static final String FIND_ALL_USERS = """
-        SELECT userID, userName, userEmail, userPermissions, userActive, userRegisterDate From users;
+        SELECT userID, userName, userEmail, userPermissions, userActive, userRegisterDate From users WHERE userActive = 1;
     """;
 
     private static final String CREATE_NEW_USER = """

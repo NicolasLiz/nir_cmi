@@ -21,6 +21,7 @@ public class RoomRepository {
             roomType,
             roomActive
         FROM rooms
+        WHERE roomActive = 1
         ORDER BY roomID;
     """;
 

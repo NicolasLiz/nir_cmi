@@ -219,6 +219,7 @@ public class AdminController {
         }
     }
 
+
     @GetMapping(value = "/api/admin/get_sectors")
     @ResponseBody
     @RequiresPermission(User.uTypeAdmin)
