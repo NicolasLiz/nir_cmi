@@ -9,32 +9,31 @@ public class User {
     public static final long uPermReadAudits = 1L << 1;
 
     public static final long uPermRegisterUser = 1L << 2;
-    public static final long uPermUpdateUser = 1L << 3;
-    public static final long uPermDeactivateUser = 1L << 4;
-    public static final long uPermSetUserPermissions = 1L << 5;
+    public static final long uPermViewUser = 1L << 3;
+    public static final long uPermUpdateUser = 1L << 4;
 
-    public static final long uPermRegisterSector = 1L << 6;
-    public static final long uPermViewSector = 1L << 7;
-    public static final long uPermUpdateSector = 1L << 8;
+    public static final long uPermRegisterSector = 1L << 5;
+    public static final long uPermViewSector = 1L << 6;
+    public static final long uPermUpdateSector = 1L << 7;
 
-    public static final long uPermRegisterRoom = 1L << 9;
-    public static final long uPermViewRoom = 1L << 10;
-    public static final long uPermUpdateRoom = 1L << 11;
+    public static final long uPermRegisterRoom = 1L << 8;
+    public static final long uPermViewRoom = 1L << 9;
+    public static final long uPermUpdateRoom = 1L << 10;
 
-    public static final long uPermRegisterBed = 1L << 12;
-    public static final long uPermViewBed = 1L << 13;
-    public static final long uPermUpdateBed = 1L << 14;
-    public static final long uPermAllocateBed = 1L << 15;
+    public static final long uPermRegisterBed = 1L << 11;
+    public static final long uPermViewBed = 1L << 12;
+    public static final long uPermUpdateBed = 1L << 13;
+    public static final long uPermAllocateBed = 1L << 14;
 
-    public static final long uPermRegisterPatient = 1L << 16;
-    public static final long uPermViewPatient = 1L << 17;
-    public static final long uPermFindPatient = 1L << 18;
-    public static final long uPermTransferPatient = 1L << 19;
-    public static final long uPermInternPatient = 1L << 20;
-    public static final long uPermFreePatient = 1L << 21;
-    public static final long uPermViewIndicators = 1L << 22;
+    public static final long uPermRegisterPatient = 1L << 15;
+    public static final long uPermViewPatient = 1L << 16;
+    public static final long uPermFindPatient = 1L << 17;
+    public static final long uPermTransferPatient = 1L << 18;
+    public static final long uPermInternPatient = 1L << 19;
+    public static final long uPermFreePatient = 1L << 20;
+    public static final long uPermViewIndicators = 1L << 21;
 
-    public static final long uPermCreateReport = 1L << 23;
+    public static final long uPermCreateReport = 1L << 22;
 
 
 

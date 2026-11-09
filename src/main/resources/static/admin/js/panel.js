@@ -61,7 +61,7 @@ let db = {
 // Fetch actual users from the Spring Boot backend API
 async function loadUsersFromApi() {
     try {
-        const response = await fetch('/api/admin/get_users');
+        const response = await fetch('/api/get_users');
         if (response.ok) {
             const users = await response.json();
             db.usuarios = Array.isArray(users) ? users : [];
@@ -77,7 +77,7 @@ async function loadUsersFromApi() {
 // Fetch actual sectors from the Spring Boot backend API
 async function loadSectorsFromApi() {
     try {
-        const response = await fetch('/api/admin/get_sectors');
+        const response = await fetch('/api/get_sectors');
         if (response.ok) {
             const sectors = await response.json();
             db.setores = Array.isArray(sectors) ? sectors : [];
@@ -92,7 +92,7 @@ async function loadSectorsFromApi() {
 
 async function loadRoomsFromApi() {
     try {
-        const response = await fetch('/api/admin/get_rooms');
+        const response = await fetch('/api/get_rooms');
         if (response.ok) {
             const rooms = await response.json();
             db.quartos = Array.isArray(rooms) ? rooms : [];
@@ -107,7 +107,7 @@ async function loadRoomsFromApi() {
 
 async function loadBedsFromApi() {
     try {
-        const response = await fetch('/api/admin/get_beds');
+        const response = await fetch('/api/get_beds');
         if (response.ok) {
             const beds = await response.json();
             db.leitos = Array.isArray(beds) ? beds : [];
@@ -576,7 +576,7 @@ function openModal(entity, id = null, parentContext = null) {
         html = `
             <div class="form-field">
                 <label>Número / Identificação do Leito</label>
-                <input type="text" id="field-numero" class="input-custom" value="${bedNum}" required placeholder="Ex: Leito 01">
+                <input type="number" id="field-numero" class="input-custom" value="${bedNum}" required placeholder="Ex:01">
             </div>
             <div class="form-field">
                 <label>Quarto Associado</label>
@@ -647,7 +647,7 @@ async function handleFormSubmit(event) {
             userActive: document.getElementById('field-ativo').value === 'true' ? 1 : 0
         };
 
-        const endpoint = userId !== '' ? '/api/admin/update_user' : '/api/admin/register_user';
+        const endpoint = userId !== '' ? '/api/update_user' : '/api/register_user';
 
         try {
             const response = await fetch(endpoint, {
@@ -683,7 +683,7 @@ async function handleFormSubmit(event) {
             sectorActive: activeSelect ? (activeSelect.value === 'true' ? 1 : 0) : 1
         };
 
-        const endpoint = sectorId !== '' ? '/api/admin/update_sector' : '/api/admin/register_sector';
+        const endpoint = sectorId !== '' ? '/api/update_sector' : '/api/register_sector';
 
         try {
             const response = await fetch(endpoint, {
@@ -725,7 +725,7 @@ async function handleFormSubmit(event) {
             roomActive: activeSelect ? (activeSelect.value === 'true' ? 1 : 0) : 1
         };
 
-        const endpoint = roomId !== '' ? '/api/admin/update_room' : '/api/admin/register_room';
+        const endpoint = roomId !== '' ? '/api/update_room' : '/api/register_room';
 
         try {
             const response = await fetch(endpoint, {
@@ -770,7 +770,7 @@ async function handleFormSubmit(event) {
             bedActive: 1
         };
 
-        const endpoint = bedId !== '' ? '/api/admin/update_bed' : '/api/admin/register_bed';
+        const endpoint = bedId !== '' ? '/api/update_bed' : '/api/register_bed';
 
         try {
             const response = await fetch(endpoint, {
@@ -863,7 +863,7 @@ async function deleteRecord(entity, id) {
     };
 
     try {
-        const response = await fetch('/api/admin/update_bed', {
+        const response = await fetch('/api/update_bed', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
