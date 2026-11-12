@@ -42,6 +42,15 @@ CREATE TABLE IF NOT EXISTS beds (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS patients (
+    patientID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    patientName TEXT NOT NULL,
+    patientBirthDate TEXT NOT NULL,
+    patientDocument TEXT,
+    patientChart TEXT,
+    patientRegisterDate TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS bedStatusChanges (
     statusChangeID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     statusChangeBedID INTEGER NOT NULL,
@@ -54,15 +63,6 @@ CREATE TABLE IF NOT EXISTS bedStatusChanges (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS patients (
-    patientID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    patientName TEXT NOT NULL,
-    patientBirthDate TEXT NOT NULL,
-    patientDocument TEXT,
-    patientChard TEXT,
-    patientRegisterDate TEXT NOT NULL,
-);
-
 CREATE TABLE IF NOT EXISTS admissions (
     admissionID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     admissionPatientID INTEGER NOT NULL,
@@ -70,28 +70,16 @@ CREATE TABLE IF NOT EXISTS admissions (
     admissionOutDate TEXT,
     admissionStatus INTEGER, --flags
     admissionObservation TEXT,
+    admissionUserID TEXT NOT NULL, -- usuario responsavel pela internação
 
     FOREIGN KEY (admissionPatientID) REFERENCES patients(patientID)
         ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY (admissionUserID) REFERENCES users(userID)
+        ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
-
-CREATE TABLE IF NOT EXISTS bedOcupations {
-    occupationID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    occupationAdmissionID INTEGER NOT NULL,
-    occupationBedID INTEGER NOT NULL,
-    occupationInDate TEXT,
-    occupationOutDate TEXT,  
-    occupationActive INTEGER,
-
-    FOREIGN KEY (ocpationAdmissionID) REFERENCE admissions(admissionID)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (occupationBedID) REFERENCE bed(bedID)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-}
 
 CREATE TABLE IF NOT EXISTS transfers (
     transferID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -100,7 +88,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     transferToBedID INTEGER,
     transferDate TEXT,
     transferReason TEXT,
-    transferUserID TEXT, -- uuid
+    transferUserID TEXT NOT NULL, -- uuid
 
     FOREIGN KEY (transferAdmissionID) REFERENCES admissions(admissionID)
         ON DELETE RESTRICT
@@ -116,18 +104,20 @@ CREATE TABLE IF NOT EXISTS transfers (
 
     FOREIGN KEY (transferUserID) REFERENCES users(userID)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE,
+        ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXITS bedBlocks (
-    blockID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    blockBedID INTEGER,
-    blockReason TEXT,
-    blockStartDate TEXT,
-    blockEndDate TEXT,
-    blockUserID TEXT,
+CREATE TABLE IF NOT EXISTS discharges (
+    dischargeID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    dischargePatientID INTEGER,
+    dischargeUserID TEXT NOT NULL,
+    dischargeDate TEXT NOT NULL,
 
-    FOREIGN KEY (blockUserID) REFERENCES users(userID)
+    FOREIGN KEY (dischargePatientID) REFERENCES patients(patientID)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY (dischargeUserID) REFERENCES users(userID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );

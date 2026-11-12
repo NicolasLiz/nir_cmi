@@ -92,7 +92,7 @@ public class AccessController {
         if ((user.userPermissions & User.uTypeAdmin) == User.uTypeAdmin) {
             response.sendRedirect("/admin/panel");
         } else {
-            response.sendRedirect("/app/internacao.html");
+            response.sendRedirect("/app/internacao");
         }
     }
 

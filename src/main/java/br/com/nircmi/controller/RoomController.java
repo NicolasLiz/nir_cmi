@@ -45,7 +45,7 @@ public class RoomController {
 
 
 
-    @PostMapping(value = "/api/admin/register_room", produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/api/register_room", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     @RequiresPermission(User.uPermRegisterRoom)
     public ResponseEntity<?> registerRoom(@RequestBody Room roomRequest) {

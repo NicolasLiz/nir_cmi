@@ -1,6 +1,7 @@
 package br.com.nircmi.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import br.com.nircmi.model.Admission;
 import br.com.nircmi.model.Bed;
@@ -13,7 +14,7 @@ public class Transfer {
     public Long transferToBedID;
     public LocalDateTime transferDate;
     public String transferReason;
-    public Long transferUserID;
+    public UUID transferUserID;
 
     public Admission transferAdmission;
     // bad names. not changing it

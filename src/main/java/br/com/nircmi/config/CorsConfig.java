@@ -21,7 +21,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/", "/app/**", "/admin/**", "/api/admin/**") // Routes that require auth
+                .addPathPatterns("/", "/app/**", "/admin/**", "/api/**", "") // Routes that require auth
                 .excludePathPatterns("/login", "/api/auth/**", "/css/**", "/js/**"); // Public routes allowed through
     }
 }

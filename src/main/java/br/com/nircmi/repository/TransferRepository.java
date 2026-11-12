@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * 
@@ -15,28 +16,33 @@ import java.time.LocalDateTime;
 public class TransferRepository {
     private static final String FIND_ALL_TRANSFERS = """
         SELECT
-            transferID;
-            transferAdmissionID;
-            transferFromBedID;
-            transferToBedID;
-            transferDate;
-            transferReason;
-            transferUserID;
+            transferID,
+            transferAdmissionID,
+            transferFromBedID,
+            transferToBedID,
+            transferDate,
+            transferReason,
+            transferUserID
         FROM transfers
         ORDER BY transferID;
     """;
 
     private static final String FIND_TRANSFER_BY_ID = """
         SELECT
-            transferID;
-            transferAdmissionID;
-            transferFromBedID;
-            transferToBedID;
-            transferDate;
-            transferReason;
-            transferUserID;
+            transferID,
+            transferAdmissionID,
+            transferFromBedID,
+            transferToBedID,
+            transferDate,
+            transferReason,
+            transferUserID
         FROM transfers
         WHERE transferID = ?;
+    """;
+
+    private static final String CREATE_NEW_TRANSFER = """
+        INSERT INTO transfers (transferAdmissionID, transferFromBedID, transferToBedID, transferDate, transferReason, transferUserID)
+        VALUES (?, ?, ?, ?, ?, ?);
     """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -64,7 +70,7 @@ public class TransferRepository {
         }
 
         i.transferReason = rs.getString("transferReason");
-        i.transferUserID = rs.getLong("transferUserID");
+        i.transferUserID = UUID.fromString(rs.getString("transferUserID"));
 
         return i;
     };
@@ -75,5 +81,18 @@ public class TransferRepository {
 
     public Transfer getTransferByID(Long id) {
         return jdbcTemplate.queryForObject(FIND_TRANSFER_BY_ID, transferRowMapper, id);
+    }
+
+    public boolean createTransfer(Transfer transfer) {
+        int alteredRows = jdbcTemplate.update(CREATE_NEW_TRANSFER,
+            transfer.transferAdmissionID,
+            transfer.transferFromBedID,
+            transfer.transferToBedID,
+            transfer.transferDate,
+            transfer.transferReason,
+            transfer.transferUserID.toString()
+        );
+
+        return alteredRows > 0;
     }
 }

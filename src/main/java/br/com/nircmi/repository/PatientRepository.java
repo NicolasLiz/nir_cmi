@@ -42,6 +42,12 @@ public class PatientRepository {
         VALUES (?, ?, ?, ?, ?);
     """;
 
+    private static final String UPDATE_PATIENT = """
+        UPDATE patients 
+        SET patientName = ?, patientBirthDate = ?, patientDocument = ?, patientChart = ?, patientRegisterDate = ?
+        WHERE patientID = ?;
+    """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public PatientRepository(JdbcTemplate jdbcTemplate) {
@@ -83,5 +89,30 @@ public class PatientRepository {
 
     public Patient getPatientByID(Long id) {
         return jdbcTemplate.queryForObject(FIND_PATIENT_BY_ID, patientRowMapper, id);
+    }
+
+    public boolean createPatient(Patient patient) {
+        int rows_affected = jdbcTemplate.update(CREATE_NEW_PATIENT,
+            patient.patientName,
+            patient.patientBirthDate,
+            patient.patientDocument,
+            patient.patientChart,
+            patient.patientRegisterDate
+        );
+
+        return rows_affected > 0;
+    }
+
+    public boolean updatePatient(Patient patient) {
+        int rows_affected = jdbcTemplate.update(UPDATE_PATIENT,
+            patient.patientName,
+            patient.patientBirthDate,
+            patient.patientDocument,
+            patient.patientChart,
+            patient.patientRegisterDate,
+            patient.patientID
+        );
+
+        return rows_affected > 0;
     }
 }

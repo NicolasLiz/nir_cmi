@@ -2,37 +2,59 @@
 const PERMISSIONS = {
     uPermSystemParameters: 1n << 0n,
     uPermReadAudits: 1n << 1n,
+
     uPermRegisterUser: 1n << 2n,
-    uPermUpdateUser: 1n << 3n,
-    uPermDeactivateUser: 1n << 4n,
-    uPermSetUserPermissions: 1n << 5n,
-    uPermRegisterSector: 1n << 6n,
-    uPermViewSector: 1n << 7n,
-    uPermUpdateSector: 1n << 8n,
-    uPermRegisterRoom: 1n << 9n,
-    uPermViewRoom: 1n << 10n,
-    uPermUpdateRoom: 1n << 11n,
-    uPermRegisterBed: 1n << 12n,
-    uPermViewBed: 1n << 13n,
-    uPermUpdateBed: 1n << 14n,
-    uPermAllocateBed: 1n << 15n,
-    uPermRegisterPatient: 1n << 16n,
-    uPermViewPatient: 1n << 17n,
-    uPermFindPatient: 1n << 18n,
-    uPermTransferPatient: 1n << 19n,
-    uPermInternPatient: 1n << 20n,
-    uPermFreePatient: 1n << 21n,
-    uPermViewIndicators: 1n << 22n,
-    uPermCreateReport: 1n << 23n
+    uPermViewUser: 1n << 3n,
+    uPermUpdateUser: 1n << 4n,
+
+    uPermRegisterSector: 1n << 5n,
+    uPermViewSector: 1n << 6n,
+    uPermUpdateSector: 1n << 7n,
+
+    uPermRegisterRoom: 1n << 8n,
+    uPermViewRoom: 1n << 9n,
+    uPermUpdateRoom: 1n << 10n,
+
+    uPermRegisterBed: 1n << 11n,
+    uPermViewBed: 1n << 12n,
+    uPermUpdateBed: 1n << 13n,
+    uPermAllocateBed: 1n << 14n,
+
+    uPermRegisterPatient: 1n << 15n,
+    uPermViewPatient: 1n << 16n,
+
+    uPermTransferPatient: 1n << 17n,
+    uPermInternPatient: 1n << 18n,
+    uPermFreePatient: 1n << 19n,
+    uPermViewIndicators: 1n << 20n,
+
+    uPermCreateReport: 1n << 21n
 };
 
 // Define Role templates
 const ROLES = {
     admin: -1n, // All bits set (~0L)
-    management: PERMISSIONS.uPermViewSector | PERMISSIONS.uPermViewRoom | PERMISSIONS.uPermViewBed | PERMISSIONS.uPermViewPatient | PERMISSIONS.uPermViewIndicators | PERMISSIONS.uPermCreateReport,
-    reception: PERMISSIONS.uPermRegisterPatient | PERMISSIONS.uPermFindPatient | PERMISSIONS.uPermInternPatient | PERMISSIONS.uPermAllocateBed | PERMISSIONS.uPermViewBed | PERMISSIONS.uPermFreePatient,
-    nurse: PERMISSIONS.uPermViewBed | PERMISSIONS.uPermViewPatient | PERMISSIONS.uPermTransferPatient | PERMISSIONS.uPermUpdateBed,
-    medic: PERMISSIONS.uPermViewPatient | PERMISSIONS.uPermViewSector | PERMISSIONS.uPermViewBed
+    management: PERMISSIONS.uPermViewSector |
+        PERMISSIONS.uPermViewRoom |
+        PERMISSIONS.uPermViewBed |
+        PERMISSIONS.uPermViewPatient |
+        PERMISSIONS.uPermViewIndicators |
+        PERMISSIONS.uPermCreateReport,
+
+    reception: PERMISSIONS.uPermRegisterPatient |
+        PERMISSIONS.uPermInternPatient |
+        PERMISSIONS.uPermAllocateBed |
+        PERMISSIONS.uPermViewBed |
+        PERMISSIONS.uPermFreePatient,
+
+    nurse: PERMISSIONS.uPermViewBed |
+        PERMISSIONS.uPermViewPatient |
+        PERMISSIONS.uPermTransferPatient |
+        PERMISSIONS.uPermUpdateBed,
+
+    medic: PERMISSIONS.uPermViewPatient |
+        PERMISSIONS.uPermViewSector |
+        PERMISSIONS.uPermViewBed,
 };
 
 // Helper to auto-check permissions when selecting a Role Preset
@@ -187,33 +209,6 @@ function switchTab(tabId) {
 }
 
 function refreshUI() {
-    const elStatUsuarios = document.getElementById('stat-usuarios');
-    const elStatSetores = document.getElementById('stat-setores');
-    const elStatQuartos = document.getElementById('stat-quartos');
-    const elStatLeitos = document.getElementById('stat-leitos');
-
-    if (elStatUsuarios) elStatUsuarios.textContent = db.usuarios.length;
-    if (elStatSetores) elStatSetores.textContent = db.setores.length;
-    if (elStatQuartos) elStatQuartos.textContent = db.quartos.length;
-    if (elStatLeitos) elStatLeitos.textContent = db.leitos.length;
-
-    const dispCount = db.leitos.filter(l => l.status === 'Disponível').length;
-    const ocupCount = db.leitos.filter(l => l.status === 'Ocupado').length;
-    const manutCount = db.leitos.filter(l => l.status === 'Manutenção').length;
-
-    const elDisp = document.getElementById('stat-leitos-disp');
-    const elOcup = document.getElementById('stat-leitos-ocup');
-    const elManut = document.getElementById('stat-leitos-manut');
-
-    if (elDisp) elDisp.textContent = dispCount;
-    if (elOcup) elOcup.textContent = ocupCount;
-    if (elManut) elManut.textContent = manutCount;
-
-    renderUsuariosTable();
-    renderHospitalHierarchy();
-}
-
-function refreshUI() {
     const statUsuarios = document.getElementById('stat-usuarios');
     const statSetores = document.getElementById('stat-setores');
     const statQuartos = document.getElementById('stat-quartos');
@@ -224,17 +219,26 @@ function refreshUI() {
     if (statQuartos) statQuartos.textContent = db.quartos.length;
     if (statLeitos) statLeitos.textContent = db.leitos.length;
 
-    const dispCount = db.leitos.filter(l => l.status === 'Disponível').length;
-    const ocupCount = db.leitos.filter(l => l.status === 'Ocupado').length;
-    const manutCount = db.leitos.filter(l => l.status === 'Manutenção').length;
+    const dispCount = db.leitos.filter(l => l.bedStatus == 1n << 0n).length;
+    const ocupCount = db.leitos.filter(l => l.bedStatus == 1n << 1n).length;
+    const reseCount = db.leitos.filter(l => l.bedStatus == 1n << 2n).length;
+    const higiCount = db.leitos.filter(l => l.bedStatus == 1n << 3n).length;
+    const manutCount = db.leitos.filter(l => l.bedStatus == 1n << 4n).length;
+    const bloqCount = db.leitos.filter(l => l.bedStatus == 1n << 5n).length;
 
     const statDisp = document.getElementById('stat-leitos-disp');
     const statOcup = document.getElementById('stat-leitos-ocup');
+    const statRese = document.getElementById('stat-leitos-reserv');
+    const statHigi = document.getElementById('stat-leitos-hig');
     const statManut = document.getElementById('stat-leitos-manut');
+    const statBloq = document.getElementById('stat-leitos-bloq');
 
     if (statDisp) statDisp.textContent = dispCount;
     if (statOcup) statOcup.textContent = ocupCount;
+    if (statRese) statRese.textContent = reseCount;
+    if (statHigi) statHigi.textContent = higiCount;
     if (statManut) statManut.textContent = manutCount;
+    if (statBloq) statBloq.textContent = bloqCount;
 
     renderUsuariosTable();
     renderHospitalHierarchy();

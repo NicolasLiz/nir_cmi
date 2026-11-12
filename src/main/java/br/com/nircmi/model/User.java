@@ -27,13 +27,14 @@ public class User {
 
     public static final long uPermRegisterPatient = 1L << 15;
     public static final long uPermViewPatient = 1L << 16;
-    public static final long uPermFindPatient = 1L << 17;
-    public static final long uPermTransferPatient = 1L << 18;
-    public static final long uPermInternPatient = 1L << 19;
-    public static final long uPermFreePatient = 1L << 20;
-    public static final long uPermViewIndicators = 1L << 21;
 
-    public static final long uPermCreateReport = 1L << 22;
+    public static final long uPermTransferPatient = 1L << 17;
+    public static final long uPermInternPatient = 1L << 18;
+    public static final long uPermFreePatient = 1L << 19;
+
+    public static final long uPermViewIndicators = 1L << 20;
+
+    public static final long uPermCreateReport = 1L << 21;
 
 
 
@@ -48,7 +49,6 @@ public class User {
     );
     public static final long uTypeReception = (
         uPermRegisterPatient |
-        uPermFindPatient |
         uPermInternPatient |
         uPermAllocateBed |
         uPermViewBed |

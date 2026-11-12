@@ -50,7 +50,7 @@ public class BedRepository {
     private static final String UPDATE_BED = """
         UPDATE beds
         SET bedRoomID = ?, bedNumber = ?, bedType = ?, bedStatus = ?, bedObservation = ?, bedRegisterDate = ?, bedActive = ?
-        where bedID = ?;
+        WHERE bedID = ?;
     """;
 
     private final JdbcTemplate jdbcTemplate;

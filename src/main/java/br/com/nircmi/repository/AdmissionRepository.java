@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * 
@@ -20,8 +21,10 @@ public class AdmissionRepository {
             admissionInDate,
             admissionOutDate,
             admissionStatus,
-            admissionObservation
+            admissionObservation,
+            admissionUserID 
         FROM admissions
+        WHERE admissionStatus > 0
         ORDER BY admissionID;
     """;
 
@@ -32,8 +35,20 @@ public class AdmissionRepository {
             admissionInDate,
             admissionOutDate,
             admissionStatus,
-            admissionObservation
+            admissionObservation,
+            admissionUserID
         FROM admissions
+        WHERE admissionID = ?;
+    """;
+
+    private static final String CREATE_NEW_ADMISSION = """
+        INSERT INTO admissions (admissionPatientID, admissionInDate, admissionOutDate, admissionStatus, admissionObservation, admissionUserID)
+        VALUES (?, ?, ?, ?, ?, ?);
+    """;
+
+    private static final String UPDATE_ADMISSION = """
+        UPDATE admissions
+        SET admissionStatus = ?, admissionObservation = ?
         WHERE admissionID = ?;
     """;
 
@@ -69,6 +84,8 @@ public class AdmissionRepository {
         i.admissionStatus = rs.getInt("admissionStatus");
         i.admissionObservation = rs.getString("admissionObservation");
 
+        i.admissionUserID = UUID.fromString(rs.getString("admissionUserID"));
+
         return i;
     };
 
@@ -78,5 +95,28 @@ public class AdmissionRepository {
 
     public Admission getAdmissionByID(Long id) {
         return jdbcTemplate.queryForObject(FIND_ADMISSION_BY_ID, admissionRowMapper, id);
+    }
+
+    public boolean createAdmission(Admission admission) {
+        int affectedRows =  jdbcTemplate.update(CREATE_NEW_ADMISSION,
+                admission.admissionPatientID,
+                admission.admissionInDate,
+                admission.admissionOutDate,
+                admission.admissionStatus,
+                admission.admissionObservation,
+                admission.admissionUserID.toString()
+        );
+
+        return affectedRows > 0;
+    }
+
+    public boolean updateAdmission(Admission admission) {
+        int affectedRows =  jdbcTemplate.update(UPDATE_ADMISSION,
+                admission.admissionStatus,
+                admission.admissionObservation,
+                admission.admissionID
+        );
+
+        return affectedRows > 0;
     }
 }

@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.RequestAttribute;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,10 @@ public class AdminController {
     }
 
     @GetMapping("/admin/panel")
-    public String adminPanel(HttpServletResponse response) {
+    public String adminPanel(@RequestAttribute(value = "currentUser", required = true) User user, HttpServletResponse response) {
+        if (user.userPermissions != User.uTypeAdmin) {
+            return "redirect:/login.html";
+        }
         // Force the browser never to cache this page
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response.setHeader("Pragma", "no-cache");
