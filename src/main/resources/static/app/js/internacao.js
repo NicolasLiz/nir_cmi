@@ -129,6 +129,8 @@ function switchTab(tabName) {
         loadBedMap();
     } else if (tabName === 'indicadores') {
         loadHospitalIndicators();
+    } else if (tabName === 'relatorios') {
+        initReportsModule();
     }
 }
 
@@ -139,7 +141,6 @@ async function handlePatientRegistration(event) {
         patientName: document.getElementById('pat-name').value.trim(),
         patientBirthDate: document.getElementById('pat-dob').value ? document.getElementById('pat-dob').value + "T00:00:00" : null,
         patientDocument: document.getElementById('pat-doc').value.trim(),
-        patientChart: document.getElementById('pat-record').value.trim()
     };
 
     try {
@@ -215,7 +216,6 @@ async function loadPatientsAndAdmissions() {
                     <td style="font-weight: 600;">${p.patientName || '-'}</td>
                     <td>${p.patientBirthDate ? p.patientBirthDate.substring(0, 10) : '-'}</td>
                     <td>${p.patientDocument || '-'}</td>
-                    <td>${p.patientChart || '-'}</td>
                     <td>${actionButton}</td>
                 </tr>
             `;
@@ -1091,5 +1091,325 @@ async function loadHospitalIndicators() {
     } catch (error) {
         console.error('Erro ao calcular indicadores hospitalares:', error);
         showToast('Erro ao carregar indicadores de desempenho.', 'danger');
+    }
+}
+
+// --- Reports Module Functions ---
+
+async function initReportsModule() {
+    const sectorSelect = document.getElementById('rep-sector');
+    
+    try {
+        const [resSectors, resRooms, resBeds, resPatients, resAdmissions, resTransfers, resDischarges] = await Promise.all([
+            fetch('/api/get_sectors'),
+            fetch('/api/get_rooms'),
+            fetch('/api/get_beds'),
+            fetch('/api/get_patients'),
+            fetch('/api/get_admissions'),
+            fetch('/api/get_transfers'),
+            fetch('/api/get_discharges')
+        ]);
+
+        if (resSectors.ok) appHospitalState.setores = await resSectors.json();
+        if (resRooms.ok) appHospitalState.quartos = await resRooms.json();
+        if (resBeds.ok) appHospitalState.leitos = await resBeds.json();
+        if (resPatients.ok) appHospitalState.pacientes = await resPatients.json();
+        if (resAdmissions.ok) appHospitalState.internacoes = await resAdmissions.json();
+        if (resTransfers.ok) appHospitalState.transferencias = await resTransfers.json();
+        if (resDischarges.ok) appHospitalState.altas = await resDischarges.json();
+
+        // Popular dropdown de setores
+        const activeSectors = appHospitalState.setores.filter(s => s.sectorActive !== false && s.sectorActive !== 0);
+        sectorSelect.innerHTML = '<option value="">Todos os Setores</option>' + 
+            activeSectors.map(s => `<option value="${s.sectorID || s.id}">${s.sectorName || s.nome}</option>`).join('');
+
+    } catch (e) {
+        console.error('Erro ao inicializar módulo de relatórios:', e);
+        showToast('Erro ao carregar dados para relatórios.', 'danger');
+    }
+}
+
+function resetReportFilters() {
+    document.getElementById('form-reports-filter').reset();
+    document.getElementById('rep-table-head').innerHTML = `<tr><th>Selecione um relatório e clique em Gerar</th></tr>`;
+    document.getElementById('rep-table-body').innerHTML = `<tr><td style="text-align: center; color: #6b7280; padding: 2rem;">Nenhum relatório gerado no momento.</td></tr>`;
+}
+
+function onReportTypeChange() {
+    // Pode ajustar campos visíveis conforme o tipo de relatório selecionado, se necessário
+}
+
+async function handleGenerateReport(event) {
+    event.preventDefault();
+
+    const reportType = document.getElementById('rep-type').value;
+    const sectorId = document.getElementById('rep-sector').value;
+    const dateStart = document.getElementById('rep-date-start').value;
+    const dateEnd = document.getElementById('rep-date-end').value;
+    const patientFilter = document.getElementById('rep-patient').value.trim().toLowerCase();
+    const statusFilter = document.getElementById('rep-status').value;
+
+    const thead = document.getElementById('rep-table-head');
+    const tbody = document.getElementById('rep-table-body');
+    const titleEl = document.getElementById('rep-results-title');
+
+    titleEl.textContent = `Resultados: ${document.getElementById('rep-type').selectedOptions[0].text}`;
+
+    // Filtragem por período comum de datas
+    const matchesDate = (dateStr) => {
+        if (!dateStr) return true;
+        const d = dateStr.substring(0, 10);
+        if (dateStart && d < dateStart) return false;
+        if (dateEnd && d > dateEnd) return false;
+        return true;
+    };
+
+    // Filtragem de leitos por setor
+    const getFilteredBeds = () => {
+        return appHospitalState.leitos.filter(b => {
+            if (b.bedActive === 0 || b.bed_active === 0) return false;
+            if (sectorId) {
+                const room = appHospitalState.quartos.find(r => String(r.roomID || r.id) === String(b.bedRoomID));
+                if (!room || String(room.roomSectorID) !== String(sectorId)) return false;
+            }
+            if (statusFilter && String(Number(b.bedStatus || b.status || 1)) !== String(statusFilter)) return false;
+            return true;
+        });
+    };
+
+    if (reportType === 'ocupacao') {
+        thead.innerHTML = `<tr><th>ID Leito</th><th>Setor</th><th>Quarto</th><th>Leito</th><th>Status Atual</th><th>Observação / Ocupante</th></tr>`;
+        const beds = getFilteredBeds().filter(b => (Number(b.bedStatus || b.status || 1) & 2) !== 0);
+
+        if (beds.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhum leito ocupado encontrado com os filtros aplicados.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = beds.map(b => {
+            const room = appHospitalState.quartos.find(r => String(r.roomID || r.id) === String(b.bedRoomID));
+            const sector = room ? appHospitalState.setores.find(s => String(s.sectorID || s.id) === String(room.roomSectorID)) : null;
+            return `
+                <tr>
+                    <td>${b.bedID || b.id}</td>
+                    <td>${sector ? (sector.sectorName || sector.nome) : '-'}</td>
+                    <td>${room ? (room.roomIdentification || room.numero) : '-'}</td>
+                    <td style="font-weight: 600;">${b.bedNumber || b.numero}</td>
+                    <td><span style="background: #fef2f2; color: #b91c1c; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600;">Ocupado</span></td>
+                    <td>${b.bedObservation || b.observacao || '-'}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'disponibilidade') {
+        thead.innerHTML = `<tr><th>ID Leito</th><th>Setor</th><th>Quarto</th><th>Leito</th><th>Tipo</th><th>Status</th></tr>`;
+        const beds = getFilteredBeds().filter(b => (Number(b.bedStatus || b.status || 1) & 1) !== 0);
+
+        if (beds.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhum leito disponível encontrado.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = beds.map(b => {
+            const room = appHospitalState.quartos.find(r => String(r.roomID || r.id) === String(b.bedRoomID));
+            const sector = room ? appHospitalState.setores.find(s => String(s.sectorID || s.id) === String(room.roomSectorID)) : null;
+            return `
+                <tr>
+                    <td>${b.bedID || b.id}</td>
+                    <td>${sector ? (sector.sectorName || sector.nome) : '-'}</td>
+                    <td>${room ? (room.roomIdentification || room.numero) : '-'}</td>
+                    <td style="font-weight: 600;">${b.bedNumber || b.numero}</td>
+                    <td>${b.bedType || 'Padrão'}</td>
+                    <td><span style="background: #f0fdf4; color: #15803d; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600;">Disponível</span></td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'internacoes') {
+        thead.innerHTML = `<tr><th>ID</th><th>Paciente</th><th>Prontuário</th><th>Data de Entrada</th><th>Data de Saída</th><th>Status</th><th>Observações</th></tr>`;
+        
+        const filtered = appHospitalState.internacoes.filter(a => {
+            if (!matchesDate(a.admissionInDate)) return false;
+            const patient = appHospitalState.pacientes.find(p => String(p.patientID) === String(a.admissionPatientID));
+            if (patientFilter && patient && !patient.patientName.toLowerCase().includes(patientFilter) && !(patient.patientChart && patient.patientChart.toLowerCase().includes(patientFilter))) return false;
+            if (statusFilter && String(a.admissionStatus) !== String(statusFilter)) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhuma internação encontrada.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(a => {
+            const patient = appHospitalState.pacientes.find(p => String(p.patientID) === String(a.admissionPatientID));
+            return `
+                <tr>
+                    <td>${a.admissionID}</td>
+                    <td style="font-weight: 600;">${patient ? patient.patientName : `ID: ${a.admissionPatientID}`}</td>
+                    <td>${patient ? (patient.patientChart || '-') : '-'}</td>
+                    <td>${a.admissionInDate ? a.admissionInDate.replace('T', ' ').substring(0, 19) : '-'}</td>
+                    <td>${a.admissionOutDate ? a.admissionOutDate.replace('T', ' ').substring(0, 19) : 'Em aberto'}</td>
+                    <td>${getAdmissionStatusBadge(a.admissionStatus)}</td>
+                    <td>${a.admissionObservation || '-'}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'altas') {
+        thead.innerHTML = `<tr><th>ID Alta</th><th>ID Paciente</th><th>Nome da Paciente</th><th>Prontuário</th><th>Data da Alta</th></tr>`;
+        
+        const filtered = appHospitalState.altas.filter(d => {
+            if (!matchesDate(d.dischargeDate)) return false;
+            const patient = appHospitalState.pacientes.find(p => String(p.patientID) === String(d.dischargePatientID));
+            if (patientFilter && patient && !patient.patientName.toLowerCase().includes(patientFilter)) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhuma alta encontrada.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(d => {
+            const patient = appHospitalState.pacientes.find(p => String(p.patientID) === String(d.dischargePatientID));
+            return `
+                <tr>
+                    <td>${d.dischargeID}</td>
+                    <td>${d.dischargePatientID}</td>
+                    <td style="font-weight: 600;">${patient ? patient.patientName : '-'}</td>
+                    <td>${patient ? (patient.patientChart || '-') : '-'}</td>
+                    <td>${d.dischargeDate ? d.dischargeDate.replace('T', ' ').substring(0, 19) : '-'}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'transferencias') {
+        thead.innerHTML = `<tr><th>ID Transferência</th><th>ID Internação</th><th>Leito de Origem</th><th>Leito de Destino</th><th>Data</th><th>Motivo</th></tr>`;
+        
+        const filtered = appHospitalState.transferencias.filter(t => matchesDate(t.transferDate));
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhuma transferência encontrada.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(t => {
+            const bFrom = appHospitalState.leitos.find(l => String(l.bedID || l.id) === String(t.transferFromBedID));
+            const bTo = appHospitalState.leitos.find(l => String(l.bedID || l.id) === String(t.transferToBedID));
+            return `
+                <tr>
+                    <td>${t.transferID}</td>
+                    <td>${t.transferAdmissionID}</td>
+                    <td>Leito ${bFrom ? bFrom.bedNumber || bFrom.numero : t.transferFromBedID}</td>
+                    <td>Leito ${bTo ? bTo.bedNumber || bTo.numero : t.transferToBedID}</td>
+                    <td>${t.transferDate ? t.transferDate.replace('T', ' ').substring(0, 19) : '-'}</td>
+                    <td>${t.transferReason || '-'}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'historico_leitos') {
+        thead.innerHTML = `<tr><th>ID Leito</th><th>Número</th><th>Status Numérico (Bitmask)</th><th>Última Atualização</th><th>Observação</th></tr>`;
+        const beds = getFilteredBeds();
+
+        tbody.innerHTML = beds.map(b => `
+            <tr>
+                <td>${b.bedID || b.id}</td>
+                <td style="font-weight: 600;">Leito ${b.bedNumber || b.numero}</td>
+                <td>${b.bedStatus || b.status || 1}</td>
+                <td>${b.bedRegisterDate ? b.bedRegisterDate.replace('T', ' ').substring(0, 19) : '-'}</td>
+                <td>${b.bedObservation || b.observacao || 'Sem observações recentes'}</td>
+            </tr>
+        `).join('');
+
+    } else if (reportType === 'por_setor') {
+        thead.innerHTML = `<tr><th>Setor</th><th>Quartos Ativos</th><th>Total de Leitos</th><th>Ocupados</th><th>Disponíveis</th><th>Taxa de Ocupação</th></tr>`;
+        
+        const activeSectors = sectorId ? appHospitalState.setores.filter(s => String(s.sectorID || s.id) === String(sectorId)) : appHospitalState.setores.filter(s => s.sectorActive !== false && s.sectorActive !== 0);
+
+        tbody.innerHTML = activeSectors.map(sector => {
+            const sId = sector.sectorID || sector.id;
+            const roomsInSector = appHospitalState.quartos.filter(r => String(r.roomSectorID) === String(sId) && (r.roomActive !== false && r.roomActive !== 0));
+            const roomIds = new Set(roomsInSector.map(r => String(r.roomID || r.id)));
+            const bedsInSector = appHospitalState.leitos.filter(b => roomIds.has(String(b.bedRoomID)) && (b.bedActive !== 0 && b.bed_active !== 0));
+            
+            let sOcupados = 0;
+            let sDisponiveis = 0;
+            bedsInSector.forEach(b => {
+                const st = Number(b.bedStatus || b.status || 1);
+                if ((st & 2) !== 0) sOcupados++;
+                if ((st & 1) !== 0) sDisponiveis++;
+            });
+            const taxa = bedsInSector.length > 0 ? ((sOcupados / bedsInSector.length) * 100).toFixed(1) : 0;
+
+            return `
+                <tr>
+                    <td style="font-weight: 600;">${sector.sectorName || sector.nome}</td>
+                    <td>${roomsInSector.length}</td>
+                    <td>${bedsInSector.length}</td>
+                    <td style="color: #b91c1c; font-weight: 600;">${sOcupados}</td>
+                    <td style="color: #15803d; font-weight: 600;">${sDisponiveis}</td>
+                    <td><strong style="color: #1d4ed8;">${taxa}%</strong></td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'leitos_bloqueados') {
+        thead.innerHTML = `<tr><th>ID Leito</th><th>Setor</th><th>Quarto</th><th>Leito</th><th>Motivo / Observação do Bloqueio</th></tr>`;
+        const beds = getFilteredBeds().filter(b => {
+            const st = Number(b.bedStatus || b.status || 1);
+            return (st & 32) !== 0 || (st & 16) !== 0 || (st & 8) !== 0; // Bloqueado, Manutenção ou Higienização
+        });
+
+        if (beds.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhum leito bloqueado ou em manutenção no momento.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = beds.map(b => {
+            const room = appHospitalState.quartos.find(r => String(r.roomID || r.id) === String(b.bedRoomID));
+            const sector = room ? appHospitalState.setores.find(s => String(s.sectorID || s.id) === String(room.roomSectorID)) : null;
+            return `
+                <tr>
+                    <td>${b.bedID || b.id}</td>
+                    <td>${sector ? (sector.sectorName || sector.nome) : '-'}</td>
+                    <td>${room ? (room.roomIdentification || room.numero) : '-'}</td>
+                    <td style="font-weight: 600;">${b.bedNumber || b.numero}</td>
+                    <td>${b.bedObservation || b.observacao || 'Indisponível'}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } else if (reportType === 'tempo_permanencia') {
+        thead.innerHTML = `<tr><th>ID Internação</th><th>Paciente</th><th>Data de Entrada</th><th>Data de Saída</th><th>Tempo de Permanência (Dias)</th></tr>`;
+        
+        const filtered = appHospitalState.internacoes.filter(a => {
+            if (!a.admissionOutDate) return false; // Apenas internações finalizadas
+            if (!matchesDate(a.admissionInDate)) return false;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 1.5rem;">Nenhum registro de permanência concluída encontrado.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(a => {
+            const patient = appHospitalState.pacientes.find(p => String(p.patientID) === String(a.admissionPatientID));
+            const inDate = new Date(a.admissionInDate);
+            const outDate = new Date(a.admissionOutDate);
+            const diffDays = (Math.abs(outDate - inDate) / (1000 * 60 * 60 * 24)).toFixed(1);
+
+            return `
+                <tr>
+                    <td>${a.admissionID}</td>
+                    <td style="font-weight: 600;">${patient ? patient.patientName : `ID: ${a.admissionPatientID}`}</td>
+                    <td>${a.admissionInDate.replace('T', ' ').substring(0, 19)}</td>
+                    <td>${a.admissionOutDate.replace('T', ' ').substring(0, 19)}</td>
+                    <td><strong style="color: #0891b2;">${diffDays} dias</strong></td>
+                </tr>
+            `;
+        }).join('');
     }
 }
